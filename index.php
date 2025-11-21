@@ -1,24 +1,29 @@
-<?php 
-// Require toàn bộ các file khai báo môi trường, thực thi,...(không require view)
+<?php
+// Load config
+require_once './commons/env.php';
+require_once './commons/function.php';
 
-// Require file Common
-require_once './commons/env.php'; // Khai báo biến môi trường
-require_once './commons/function.php'; // Hàm hỗ trợ
+// Load Model & Controller
+require_once './models/TourModel.php';
+require_once './controllers/TourController.php';
 
-// Require toàn bộ file Controllers
-require_once './controllers/ProductController.php';
+// Kết nối DB
+$db = connectDB();
 
-// Require toàn bộ file Models
-require_once './models/ProductModel.php';
+// Lấy tham số act
+$act = $_GET['act'] ?? 'home';
 
-// Route
-$act = $_GET['act'] ?? '/';
+// Khởi tạo controller
+$controller = new TourController($db);
 
-
-// Để bảo bảo tính chất chỉ gọi 1 hàm Controller để xử lý request thì mình sử dụng match
-
+// Router
 match ($act) {
-    // Trang chủ
-    '/'=>(new ProductController())->Home(),
+    'home'      => $controller->index(),
+    'add'       => $controller->add(),
+    'store'     => $controller->store(),
+    'edit'      => $controller->edit(),
+    'update'    => $controller->update(),
+    'delete'    => $controller->delete(),
 
+    default     => $controller->index(),
 };
