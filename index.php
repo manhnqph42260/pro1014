@@ -1,29 +1,51 @@
-<?php
-// Load config
+<?php 
+session_start();
+
+// Require file Common
 require_once './commons/env.php';
 require_once './commons/function.php';
 
-// Load Model & Controller
-require_once './models/TourModel.php';
-require_once './controllers/TourController.php';
+// Kiểm tra và require controllers với debug
+$controllers = [
+    './controllers/ProductController.php',
+    './controllers/AdminController.php', 
+    './controllers/TourController.php'
+];
 
-// Kết nối DB
-$db = connectDB();
+foreach ($controllers as $controller) {
+    if (file_exists($controller)) {
+        require_once $controller;
+        echo "✅ Loaded: " . $controller . "<br>";
+    } else {
+        echo "❌ Not found: " . $controller . "<br>";
+    }
+}
 
-// Lấy tham số act
-$act = $_GET['act'] ?? 'home';
+// Route
+$act = $_GET['act'] ?? '/';
 
-// Khởi tạo controller
-$controller = new TourController($db);
+echo "Current action: " . $act . "<br>";
 
-// Router
 match ($act) {
-    'home'      => $controller->index(),
-    'add'       => $controller->add(),
-    'store'     => $controller->store(),
-    'edit'      => $controller->edit(),
-    'update'    => $controller->update(),
-    'delete'    => $controller->delete(),
-
-    default     => $controller->index(),
+    // Trang chủ
+    '/' => (new ProductController())->Home(),
+    
+    // Admin Routes
+    'admin_login' => (new AdminController())->login(),
+    'admin_dashboard' => (new AdminController())->dashboard(),
+    'admin_logout' => (new AdminController())->logout(),
+    
+    // Tour Management
+    'admin_tours' => (new TourController())->adminList(),
+    'admin_tours_create' => (new TourController())->adminCreate(),
+        // Tour Management - Admin
+    'admin_tours' => (new TourController())->adminList(),
+    'admin_tours_create' => (new TourController())->adminCreate(),
+    'admin_tours_edit' => (new TourController())->adminEdit(),
+    'admin_tours_delete' => (new TourController())->adminDelete(),
+    'admin_tours_update' => (new TourController())->adminUpdate(),
+    default => (new ProductController())->Home()
+    
 };
+
+?>

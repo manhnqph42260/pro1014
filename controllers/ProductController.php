@@ -1,0 +1,42 @@
+<?php
+// // có class chứa các function thực thi xử lý logic 
+// class ProductController
+// {
+//     public $modelProduct;
+
+//     public function __construct()
+//     {
+//         $this->modelProduct = new ProductModel();
+//     }
+
+//     public function Home()
+//     {
+//         $title = "Đây là trang chủ nhé hahaa";
+//         $thoiTiet = "Hôm nay trời có vẻ là mưa";
+//         require_once './views/trangchu.php';
+//     }
+// }
+
+
+class ProductController {
+    
+    public function __construct() {
+        // Bỏ dòng require_once hoặc khởi tạo Model
+        // require_once './models/ProductModel.php';
+        // $this->productModel = new ProductModel();
+    }
+    
+    public function Home() {
+        // Code hiển thị trang chủ
+        echo "<h1>Trang chủ hệ thống quản lý Tour</h1>";
+        echo "<p>Chào mừng đến với hệ thống!</p>";
+        
+        // Hiển thị link đến trang quản trị
+        echo '<div style="margin-top: 20px;">';
+        echo '<a href="?act=admin_login" style="padding: 10px 20px; background: #007bff; color: white; text-decoration: none; border-radius: 5px;">';
+        echo '🚀 Truy cập trang Quản trị';
+        echo '</a>';
+        echo '</div>';
+    }
+}
+?>
