@@ -1,24 +1,55 @@
 <?php 
-// Require toàn bộ các file khai báo môi trường, thực thi,...(không require view)
+session_start();
 
 // Require file Common
-require_once './commons/env.php'; // Khai báo biến môi trường
-require_once './commons/function.php'; // Hàm hỗ trợ
+require_once './commons/env.php';
+require_once './commons/function.php';
 
-// Require toàn bộ file Controllers
-require_once './controllers/ProductController.php';
+// Auto-load controllers
+$controllers = [
+    './controllers/ProductController.php',
+    './controllers/AdminController.php', 
+    './controllers/TourController.php',
+    './controllers/DepartureController.php'
+];
 
-// Require toàn bộ file Models
-require_once './models/ProductModel.php';
+foreach ($controllers as $controller) {
+    if (file_exists($controller)) {
+        require_once $controller;
+    }
+}
 
 // Route
 $act = $_GET['act'] ?? '/';
 
-
-// Để bảo bảo tính chất chỉ gọi 1 hàm Controller để xử lý request thì mình sử dụng match
-
 match ($act) {
     // Trang chủ
-    '/'=>(new ProductController())->Home(),
-
+    '/' => (new ProductController())->Home(),
+    
+    // Admin Routes
+    'admin_login' => (new AdminController())->login(),
+    'admin_dashboard' => (new AdminController())->dashboard(),
+    'admin_logout' => (new AdminController())->logout(),
+    
+    // Tour Management - Admin
+    'admin_tours' => (new TourController())->adminList(),
+    'admin_tours_create' => (new TourController())->adminCreate(),
+    'admin_tours_edit' => (new TourController())->adminEdit(),
+    'admin_tours_delete' => (new TourController())->adminDelete(),
+    'admin_tours_update' => (new TourController())->adminUpdate(),
+        // Tour Itinerary Management
+    'admin_tours_itinerary' => (new TourController())->adminItinerary(),
+    'admin_tours_itinerary_add' => (new TourController())->adminAddItinerary(),
+    'admin_tours_itinerary_edit' => (new TourController())->adminEditItinerary(),
+    'admin_tours_itinerary_delete' => (new TourController())->adminDeleteItinerary(),
+        // Departure Management
+    'admin_departures' => (new DepartureController())->adminList(),
+    'admin_departures_create' => (new DepartureController())->adminCreate(),
+    'admin_bookings' => (new BookingController())->adminList(),
+    'admin_bookings_create' => (new BookingController())->adminCreate(),
+    'admin_bookings_view' => (new BookingController())->adminView(),
+    'admin_bookings_confirm' => (new BookingController())->adminConfirm(),
+    
+    default => (new ProductController())->Home()
 };
+?>
