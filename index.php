@@ -16,11 +16,16 @@ $controllers = [
 foreach ($controllers as $controller) {
     if (file_exists($controller)) {
         require_once $controller;
+        echo "✅ Loaded: " . $controller . "<br>";
+    } else {
+        echo "❌ Not found: " . $controller . "<br>";
     }
 }
 
 // Route
 $act = $_GET['act'] ?? '/';
+
+echo "Current action: " . $act . "<br>";
 
 match ($act) {
     // Trang chủ

@@ -173,6 +173,128 @@ $page_title = "Dashboard Quản trị";
             </div>
         </div>
     </div>
-</body>
+    
+    <div class="col-md-4">
+        <div class="card stat-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-calendar-check fs-1 text-success"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="card-title mb-0"><?php echo $departure_stats['total_departures'] ?? 0; ?></h3>
+                        <p class="card-text text-muted mb-0">Lịch khởi hành</p>
+                        <small class="text-muted">Đã xác nhận: <?php echo $departure_stats['confirmed'] ?? 0; ?></small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card stat-card border-0 shadow-sm">
+            <div class="card-body">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <i class="bi bi-person-badge fs-1 text-warning"></i>
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h3 class="card-title mb-0"><?php echo $guide_stats['total_guides'] ?? 0; ?></h3>
+                        <p class="card-text text-muted mb-0">Hướng dẫn viên</p>
+                        <small class="text-muted">Đang hoạt động</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-</html>
+<!-- Quick Actions -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title"><i class="bi bi-lightning me-2"></i>Thao tác nhanh</h5>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="?act=admin_tours_create" class="btn btn-primary">
+                        <i class="bi bi-plus-circle me-1"></i>Tạo Tour mới
+                    </a>
+                    <a href="?act=admin_tours" class="btn btn-outline-primary">
+                        <i class="bi bi-list-ul me-1"></i>Quản lý Tour
+                    </a>
+                    <a href="#" class="btn btn-outline-secondary">
+                        <i class="bi bi-calendar-plus me-1"></i>Tạo lịch trình
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Recent Tours -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clock-history me-2"></i>Tour gần đây</span>
+                    <a href="?act=admin_tours" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                </h5>
+                <div class="list-group list-group-flush">
+                    <?php if (count($recent_tours) > 0): ?>
+                        <?php foreach ($recent_tours as $tour): ?>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1"><?php echo htmlspecialchars($tour['tour_name']); ?></h6>
+                                <small class="text-muted"><?php echo $tour['tour_code']; ?></small>
+                            </div>
+                            <span class="badge bg-<?php echo $tour['status'] === 'published' ? 'success' : 'warning'; ?>">
+                                <?php echo $tour['status'] === 'published' ? 'Đã xuất bản' : 'Bản nháp'; ?>
+                            </span>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-inbox fs-1"></i>
+                            <p class="mt-2">Chưa có tour nào</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Departures -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-calendar-event me-2"></i>Lịch khởi hành sắp tới</span>
+                    <a href="#" class="btn btn-sm btn-outline-primary">Xem tất cả</a>
+                </h5>
+                <div class="list-group list-group-flush">
+                    <?php if (count($upcoming_departures) > 0): ?>
+                        <?php foreach ($upcoming_departures as $departure): ?>
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1"><?php echo htmlspecialchars($departure['tour_name']); ?></h6>
+                                <small class="text-muted"><?php echo date('d/m/Y', strtotime($departure['departure_date'])); ?></small>
+                            </div>
+                            <span class="badge bg-<?php echo $departure['status'] === 'confirmed' ? 'success' : 'info'; ?>">
+                                <?php echo $departure['status'] === 'confirmed' ? 'Đã xác nhận' : 'Đang chờ'; ?>
+                            </span>
+                        </div>
+                        <?php endforeach; ?>
+                    <?php else: ?>
+                        <div class="text-center text-muted py-3">
+                            <i class="bi bi-calendar-x fs-1"></i>
+                            <p class="mt-2">Không có lịch khởi hành</p>
+                        </div>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php require_once 'footer.php'; ?>
