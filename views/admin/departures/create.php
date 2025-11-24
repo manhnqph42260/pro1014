@@ -1,5 +1,5 @@
 <?php
-$page_title = "Quản lý Lịch khởi hành";
+$page_title = "Tạo Lịch khởi hành";
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -7,6 +7,46 @@ $page_title = "Quản lý Lịch khởi hành";
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo $page_title; ?></title>
+    <style>
+        .container {
+            padding: 20px;
+            max-width: 800px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        .btn {
+            padding: 10px 15px;
+            background: #007bff;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        
+    </style>
     <style>
         .container {
             padding: 20px;
@@ -185,8 +225,6 @@ $page_title = "Quản lý Lịch khởi hành";
                 <a href="?act=admin_dashboard" class="nav-item">📊 Dashboard</a>
                 <a href="?act=admin_tours" class="nav-item">🗺️ Quản lý Tour</a>
                 <a href="?act=admin_departures" class="nav-item active">📅 Lịch khởi hành</a>
-                <a href="?act=admin_guides" class="nav-item">👨‍💼 HDV</a>
-                <a href="?act=admin_services" class="nav-item">🔔 Dịch vụ</a>
                 <a href="?act=admin_logout" class="nav-item">🚪 Đăng xuất</a>
             </nav>
         </div>
@@ -195,7 +233,7 @@ $page_title = "Quản lý Lịch khởi hành";
         <div class="main-content">
             <header class="top-header">
                 <div class="header-left">
-                    <h1>📅 Lịch khởi hành</h1>
+                    <h1>Tạo Lịch khởi hành</h1>
                 </div>
                 <div class="header-right">
                     <span>Xin chào, <?php echo $_SESSION['full_name']; ?></span>
@@ -204,74 +242,68 @@ $page_title = "Quản lý Lịch khởi hành";
 
             <div class="content-area">
                 <div class="container">
-                    <!-- Header -->
-                    <div class="header">
-                        <h2>Quản lý Lịch khởi hành</h2>
-                        <a href="?act=admin_departures_create" class="btn">+ Tạo lịch mới</a>
-                    </div>
-
-                    <!-- Messages -->
-                    <?php if (isset($_SESSION['success'])): ?>
-                        <div class="alert alert-success">
-                            <?php echo $_SESSION['success']; unset($_SESSION['success']); ?>
-                        </div>
+                    <a href="?act=admin_departures" class="btn btn-secondary">← Quay lại</a>
+                    
+                    <h2>📅 Tạo lịch khởi hành mới</h2>
+                    
+                    <?php if (isset($error)): ?>
+                        <div class="alert alert-error"><?php echo $error; ?></div>
                     <?php endif; ?>
-
-                    <!-- Departures Table -->
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Mã Tour</th>
-                                <th>Tên Tour</th>
-                                <th>Ngày khởi hành</th>
-                                <th>Giờ</th>
-                                <th>Số chỗ</th>
-                                <th>Giá người lớn</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php if (count($departures) > 0): ?>
-                                <?php foreach ($departures as $departure): ?>
-                                <tr>
-                                    <td><strong><?php echo $departure['tour_code']; ?></strong></td>
-                                    <td><?php echo htmlspecialchars($departure['tour_name']); ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($departure['departure_date'])); ?></td>
-                                    <td><?php echo $departure['departure_time'] ? date('H:i', strtotime($departure['departure_time'])) : '--:--'; ?></td>
-                                    <td><?php echo $departure['expected_slots']; ?> chỗ</td>
-                                    <td><?php echo number_format($departure['price_adult']); ?> VNĐ</td>
-                                    <td>
-                                        <span class="status-<?php echo $departure['status']; ?>">
-                                            <?php 
-                                            $status_text = [
-                                                'scheduled' => 'Đã lên lịch',
-                                                'confirmed' => 'Đã xác nhận',
-                                                'completed' => 'Đã hoàn thành',
-                                                'cancelled' => 'Đã hủy'
-                                            ];
-                                            echo $status_text[$departure['status']] ?? $departure['status'];
-                                            ?>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <a href="?act=admin_departures_edit&id=<?php echo $departure['departure_id']; ?>">📅 Sửa Lịch trình</a> | 
-                                        <a href="?act=admin_tours_itinerary&tour_id=<?php echo $departure['tour_id']; ?>"> Lịch trình</a> | 
-                                        <a href="?act=admin_departures_delete&id=<?php echo $departure['departure_id']; ?>" 
-                                           onclick="return confirm('Xóa lịch khởi hành này?')">Xóa</a>
-                                    </td>
-                                </tr>
-                                <?php endforeach; ?>
-                            <?php else: ?>
-                                <tr>
-                                    <td colspan="8" style="text-align: center; padding: 20px;">
-                                        <p>Chưa có lịch khởi hành nào.</p>
-                                        <a href="?act=admin_departures_create" class="btn">Tạo lịch đầu tiên</a>
-                                    </td>
-                                </tr>
-                            <?php endif; ?>
-                        </tbody>
-                    </table>
+                    
+                    <form method="POST">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Chọn Tour:</label>
+                                <select name="tour_id" required>
+                                    <option value="">-- Chọn tour --</option>
+                                    <?php foreach ($tours as $tour): ?>
+                                        <option value="<?php echo $tour['tour_id']; ?>">
+                                            <?php echo $tour['tour_code']; ?> - <?php echo htmlspecialchars($tour['tour_name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ngày khởi hành:</label>
+                                <input type="date" name="departure_date" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Giờ khởi hành:</label>
+                                <input type="time" name="departure_time">
+                            </div>
+                            <div class="form-group">
+                                <label>Số chỗ dự kiến:</label>
+                                <input type="number" name="expected_slots" min="1" max="100" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Giá người lớn (VNĐ):</label>
+                                <input type="number" name="price_adult" min="0" required>
+                            </div>
+                            <div class="form-group">
+                                <label>Giá trẻ em (VNĐ):</label>
+                                <input type="number" name="price_child" min="0" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Điểm tập trung:</label>
+                            <textarea name="meeting_point" rows="2" placeholder="Địa điểm và thông tin tập trung..."></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label>Ghi chú vận hành:</label>
+                            <textarea name="operational_notes" rows="3" placeholder="Ghi chú đặc biệt cho đội vận hành..."></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn">💾 Tạo lịch khởi hành</button>
+                        <a href="?act=admin_departures" class="btn btn-secondary">❌ Hủy</a>
+                    </form>
                 </div>
             </div>
         </div>
