@@ -1,6 +1,6 @@
 <?php
 $page_title = "Quản lý Tour";
-require_once '../header.php';
+require_once '../pro1014/views/admin/header.php';
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
@@ -152,4 +152,4 @@ require_once '../header.php';
 </nav>
 <?php endif; ?>
 
-<?php require_once '../footer.php'; ?>
+<?php require_once '../pro1014/views/admin/footer.php'; ?>
