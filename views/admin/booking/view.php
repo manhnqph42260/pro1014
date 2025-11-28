@@ -199,16 +199,16 @@ require_once './views/admin/header.php';
         </div>
 
         <!-- Thông tin điểm hẹn -->
-        <?php if ($booking['meeting_point']): ?>
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">Điểm hẹn</h5>
-                </div>
-                <div class="card-body">
-                    <p><?= nl2br(htmlspecialchars($booking['meeting_point'])) ?></p>
-                </div>
-            </div>
-        <?php endif; ?>
+<?php if ($booking['meeting_point']): ?>
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Điểm hẹn</h5>
+        </div>
+        <div class="card-body">
+            <p><?php echo nl2br(htmlspecialchars($booking['meeting_point'] ?? '')); ?></p>
+        </div>
+    </div>
+<?php endif; ?>
     </div>
 </div>
 

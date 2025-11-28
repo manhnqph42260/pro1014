@@ -154,7 +154,93 @@ $page_title = "Chỉnh sửa Lịch khởi hành";
             </header>
 
             <div class="content-area">
-                <div class="form-container">
+<div class="content-area">
+    <div class="form-container">
+        <!-- Thông tin hiện tại -->
+        <div class="current-info">
+            <h4>📋 Thông tin hiện tại</h4>
+            <p><strong>Tour:</strong> <?php echo htmlspecialchars($departure['tour_name'] ?? ''); ?> (<?php echo $departure['tour_code'] ?? ''; ?>)</p>
+            <p><strong>Ngày khởi hành:</strong> <?php echo date('d/m/Y', strtotime($departure['departure_date'] ?? '')); ?></p>
+            <p><strong>Trạng thái:</strong> 
+                <span style="background: <?php 
+                    echo ($departure['status'] ?? '') == 'scheduled' ? '#fff3cd' : 
+                         (($departure['status'] ?? '') == 'confirmed' ? '#d4edda' : '#d1ecf1'); 
+                ?>; padding: 4px 8px; border-radius: 4px;">
+                    <?php echo $departure['status'] ?? ''; ?>
+                </span>
+            </p>
+        </div>
+
+        <?php if (isset($error)): ?>
+            <div class="alert alert-error"><?php echo $error; ?></div>
+        <?php endif; ?>
+
+        <form method="POST">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="tour_id">Chọn Tour *</label>
+                    <select id="tour_id" name="tour_id" required>
+                        <option value="">-- Chọn tour --</option>
+                        <?php foreach ($tours as $tour): ?>
+                            <option value="<?php echo $tour['tour_id']; ?>" 
+                                <?php echo $tour['tour_id'] == ($departure['tour_id'] ?? '') ? 'selected' : ''; ?>>
+                                <?php echo $tour['tour_code']; ?> - <?php echo htmlspecialchars($tour['tour_name'] ?? ''); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="departure_date">Ngày khởi hành *</label>
+                    <input type="date" id="departure_date" name="departure_date" 
+                           value="<?php echo $departure['departure_date'] ?? ''; ?>" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="departure_time">Giờ khởi hành</label>
+                    <input type="time" id="departure_time" name="departure_time" 
+                           value="<?php echo $departure['departure_time'] ?? ''; ?>">
+                </div>
+                <div class="form-group">
+                    <label for="expected_slots">Số chỗ dự kiến *</label>
+                    <input type="number" id="expected_slots" name="expected_slots" 
+                           min="1" max="100" value="<?php echo $departure['expected_slots'] ?? 20; ?>" required>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="price_adult">Giá người lớn (VNĐ) *</label>
+                    <input type="number" id="price_adult" name="price_adult" 
+                           min="0" value="<?php echo $departure['price_adult'] ?? ''; ?>" required>
+                </div>
+                <div class="form-group">
+                    <label for="price_child">Giá trẻ em (VNĐ) *</label>
+                    <input type="number" id="price_child" name="price_child" 
+                           min="0" value="<?php echo $departure['price_child'] ?? ''; ?>" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="meeting_point">Điểm tập trung</label>
+                <textarea id="meeting_point" name="meeting_point" 
+                          placeholder="Địa điểm và thông tin tập trung..."><?php echo htmlspecialchars($departure['meeting_point'] ?? ''); ?></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="operational_notes">Ghi chú vận hành</label>
+                <textarea id="operational_notes" name="operational_notes" 
+                          placeholder="Ghi chú đặc biệt cho đội vận hành..."><?php echo htmlspecialchars($departure['operational_notes'] ?? ''); ?></textarea>
+            </div>
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">💾 Cập nhật Lịch trình</button>
+                <a href="?act=admin_departures" class="btn btn-secondary">↩️ Quay lại</a>
+            </div>
+        </form>
+    </div>
+</div>
                     <!-- Thông tin hiện tại -->
                     <div class="current-info">
                         <h4>📋 Thông tin hiện tại</h4>
@@ -223,8 +309,24 @@ $page_title = "Chỉnh sửa Lịch khởi hành";
 
                         <div class="form-group">
                             <label for="meeting_point">Điểm tập trung</label>
-                            <textarea id="meeting_point" name="meeting_point" 
-                                      placeholder="Địa điểm và thông tin tập trung..."><?php echo htmlspecialchars($departure['meeting_point']); ?></textarea>
+                           <textarea id="meeting_point" name="meeting_point" 
+          placeholder="Địa điểm và thông tin tập trung..."><?php echo htmlspecialchars($departure['meeting_point'] ?? ''); ?></textarea>
+
+<textarea id="operational_notes" name="operational_notes" 
+          placeholder="Ghi chú đặc biệt cho đội vận hành..."><?php echo htmlspecialchars($departure['operational_notes'] ?? ''); ?></textarea>
+
+<!-- Các trường input khác cũng cần sửa -->
+<input type="time" id="departure_time" name="departure_time" 
+       value="<?php echo $departure['departure_time'] ?? ''; ?>">
+
+<input type="number" id="expected_slots" name="expected_slots" 
+       min="1" max="100" value="<?php echo $departure['expected_slots'] ?? 20; ?>" required>
+
+<input type="number" id="price_adult" name="price_adult" 
+       min="0" value="<?php echo $departure['price_adult'] ?? ''; ?>" required>
+
+<input type="number" id="price_child" name="price_child" 
+       min="0" value="<?php echo $departure['price_child'] ?? ''; ?>" required>
                         </div>
 
                         <div class="form-group">
