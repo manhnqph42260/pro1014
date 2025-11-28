@@ -1,38 +1,34 @@
 <?php
-require_once './commons/env.php';
-require_once './commons/function.php';
+echo "<h3>🔍 Kiểm tra đường dẫn</h3>";
 
-echo "<h3>🔍 Kiểm tra Database Tours</h3>";
+$paths = [
+    'views/admin/header.php' => 'Header file',
+    'views/admin/tours/create.php' => 'Create tour file', 
+    'views/admin/dashboard.php' => 'Dashboard file'
+];
 
-try {
-    $conn = connectDB();
-    echo "✅ Kết nối database thành công<br>";
-    
-    // Kiểm tra bảng tours
-    $stmt = $conn->query("SHOW TABLES LIKE 'tours'");
-    if ($stmt->rowCount() > 0) {
-        echo "✅ Bảng 'tours' tồn tại<br>";
+foreach ($paths as $path => $description) {
+    if (file_exists($path)) {
+        echo "✅ $description: $path - TỒN TẠI<br>";
+        echo "&nbsp;&nbsp;&nbsp;&nbsp;Absolute path: " . realpath($path) . "<br>";
     } else {
-        echo "❌ Bảng 'tours' KHÔNG tồn tại<br>";
-        exit();
+        echo "❌ $description: $path - KHÔNG TỒN TẠI<br>";
     }
-    
-    // Kiểm tra dữ liệu trong tours
-    $stmt = $conn->query("SELECT COUNT(*) as count FROM tours");
-    $result = $stmt->fetch();
-    echo "Số tour trong database: " . $result['count'] . "<br>";
-    
-    if ($result['count'] > 0) {
-        $tours = $conn->query("SELECT tour_id, tour_code, tour_name, status FROM tours")->fetchAll();
-        echo "Danh sách tour:<br>";
-        foreach ($tours as $tour) {
-            echo "- ID: " . $tour['tour_id'] . ", Code: " . $tour['tour_code'] . ", Name: " . $tour['tour_name'] . ", Status: " . $tour['status'] . "<br>";
-        }
-    } else {
-        echo "❌ Không có tour nào trong database<br>";
-    }
-    
-} catch (Exception $e) {
-    echo "❌ Lỗi: " . $e->getMessage() . "<br>";
 }
+
+echo "<h4>📁 Current directory structure:</h4>";
+echo "<pre>";
+function showDir($dir, $prefix = '') {
+    $items = scandir($dir);
+    foreach ($items as $item) {
+        if ($item == '.' || $item == '..') continue;
+        $path = $dir . '/' . $item;
+        echo $prefix . '├── ' . $item . "\n";
+        if (is_dir($path)) {
+            showDir($path, $prefix . '│   ');
+        }
+    }
+}
+showDir(__DIR__);
+echo "</pre>";
 ?>

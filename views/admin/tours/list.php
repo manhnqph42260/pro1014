@@ -1,6 +1,24 @@
 <?php
 $page_title = "Quản lý Tour";
-require_once '../header.php';
+require_once __DIR__ . '/../header.php';
+
+// Hiển thị thông báo thành công
+if (isset($_SESSION['success_message'])) {
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>' . $_SESSION['success_message'] . '
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>';
+    unset($_SESSION['success_message']);
+}
+
+// Hiển thị thông báo lỗi
+if (isset($_SESSION['error_message'])) {
+    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>' . $_SESSION['error_message'] . '
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>';
+    unset($_SESSION['error_message']);
+}
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
@@ -20,30 +38,115 @@ require_once '../header.php';
     <div class="card-body">
         <form method="GET" class="row g-3 align-items-end">
             <input type="hidden" name="act" value="admin_tours">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label">Tìm kiếm</label>
                 <input type="text" name="search" class="form-control" placeholder="Tên tour, mã tour..." value="<?php echo htmlspecialchars($_GET['search'] ?? ''); ?>">
             </div>
-            <div class="col-md-3">
+            <div class="col-md-2">
                 <label class="form-label">Trạng thái</label>
                 <select name="status" class="form-select">
                     <option value="">Tất cả</option>
-                    <option value="published" <?php echo ($_GET['status'] ?? '') === 'published' ? 'selected' : ''; ?>>Đã xuất bản</option>
                     <option value="draft" <?php echo ($_GET['status'] ?? '') === 'draft' ? 'selected' : ''; ?>>Bản nháp</option>
-                    <option value="locked" <?php echo ($_GET['status'] ?? '') === 'locked' ? 'selected' : ''; ?>>Đã khóa</option>
+                    <option value="published" <?php echo ($_GET['status'] ?? '') === 'published' ? 'selected' : ''; ?>>Đã xuất bản</option>
+                    <option value="in_progress" <?php echo ($_GET['status'] ?? '') === 'in_progress' ? 'selected' : ''; ?>>Đang tiến hành</option>
+                    <option value="archived" <?php echo ($_GET['status'] ?? '') === 'archived' ? 'selected' : ''; ?>>Đã lưu trữ</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Điểm đến</label>
+                <select name="destination" class="form-select">
+                    <option value="">Tất cả</option>
+                    <option value="Sapa, Lào Cai" <?php echo ($_GET['destination'] ?? '') === 'Sapa, Lào Cai' ? 'selected' : ''; ?>>Sapa</option>
+                    <option value="Hạ Long, Quảng Ninh" <?php echo ($_GET['destination'] ?? '') === 'Hạ Long, Quảng Ninh' ? 'selected' : ''; ?>>Hạ Long</option>
+                    <option value="Đà Nẵng, Hội An" <?php echo ($_GET['destination'] ?? '') === 'Đà Nẵng, Hội An' ? 'selected' : ''; ?>>Đà Nẵng - Hội An</option>
+                    <option value="Phú Quốc, Kiên Giang" <?php echo ($_GET['destination'] ?? '') === 'Phú Quốc, Kiên Giang' ? 'selected' : ''; ?>>Phú Quốc</option>
+                    <option value="Nha Trang, Khánh Hòa" <?php echo ($_GET['destination'] ?? '') === 'Nha Trang, Khánh Hòa' ? 'selected' : ''; ?>>Nha Trang</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label">Sắp xếp</label>
+                <select name="sort" class="form-select">
+                    <option value="newest">Mới nhất</option>
+                    <option value="oldest" <?php echo ($_GET['sort'] ?? '') === 'oldest' ? 'selected' : ''; ?>>Cũ nhất</option>
+                    <option value="name_asc" <?php echo ($_GET['sort'] ?? '') === 'name_asc' ? 'selected' : ''; ?>>Tên A-Z</option>
+                    <option value="name_desc" <?php echo ($_GET['sort'] ?? '') === 'name_desc' ? 'selected' : ''; ?>>Tên Z-A</option>
+                    <option value="price_asc" <?php echo ($_GET['sort'] ?? '') === 'price_asc' ? 'selected' : ''; ?>>Giá thấp nhất</option>
+                    <option value="price_desc" <?php echo ($_GET['sort'] ?? '') === 'price_desc' ? 'selected' : ''; ?>>Giá cao nhất</option>
                 </select>
             </div>
             <div class="col-md-3">
                 <button type="submit" class="btn btn-primary w-100">
                     <i class="bi bi-search me-1"></i>Tìm kiếm
                 </button>
-            </div>
-            <div class="col-md-2">
-                <a href="?act=admin_tours" class="btn btn-outline-secondary w-100">
+                <a href="?act=admin_tours" class="btn btn-outline-secondary w-100 mt-2">
                     <i class="bi bi-arrow-clockwise me-1"></i>Reset
                 </a>
             </div>
         </form>
+    </div>
+</div>
+
+<!-- Stats Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0"><?php echo $stats['total_tours'] ?? 0; ?></h4>
+                        <small>Tổng tour</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-globe fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-dark">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0"><?php echo $stats['draft_tours'] ?? 0; ?></h4>
+                        <small>Bản nháp</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-pencil fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0"><?php echo $stats['published_tours'] ?? 0; ?></h4>
+                        <small>Đã xuất bản</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-check-circle fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="mb-0"><?php echo $stats['in_progress_tours'] ?? 0; ?></h4>
+                        <small>Đang tiến hành</small>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="bi bi-play-circle fs-3"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -55,64 +158,188 @@ require_once '../header.php';
                 <table class="table table-hover align-middle mb-0">
                     <thead class="table-light">
                         <tr>
-                            <th class="border-0">Mã Tour</th>
-                            <th class="border-0">Tên Tour</th>
-                            <th class="border-0">Điểm đến</th>
-                            <th class="border-0">Thời gian</th>
-                            <th class="border-0 text-end">Giá người lớn</th>
-                            <th class="border-0">Trạng thái</th>
-                            <th class="border-0 text-center">Thao tác</th>
+                            <th class="border-0" width="120">Mã Tour</th>
+                            <th class="border-0">Thông tin Tour</th>
+                            <th class="border-0" width="150">Thời gian</th>
+                            <th class="border-0 text-end" width="150">Giá</th>
+                            <th class="border-0 text-center" width="100">Hình ảnh</th>
+                            <th class="border-0 text-center" width="100">Lịch trình</th>
+                            <th class="border-0 text-center" width="120">Trạng thái</th>
+                            <th class="border-0 text-center" width="120">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody>
-                        <?php foreach ($tours as $tour): ?>
+                        <?php foreach ($tours as $tour): 
+                            // Tính tổng tiền với giá trị mặc định nếu không có
+                            $adult_count = $tour['adult_count'] ?? 2;
+                            $child_count = $tour['child_count'] ?? 0;
+                            $price_adult = $tour['price_adult'] ?? 0;
+                            $price_child = $tour['price_child'] ?? 0;
+                            $total_amount = ($adult_count * $price_adult) + ($child_count * $price_child);
+                            
+                            // Tính số ngày từ duration_days
+                            $duration_days = $tour['duration_days'] ?? 0;
+                            $date_range = $duration_days . ' ngày';
+
+                            // Check if has images and itinerary
+                            $has_images = !empty($tour['featured_image']);
+                            $has_itinerary = !empty($tour['itinerary_count']) && $tour['itinerary_count'] > 0;
+
+                            // Kiểm tra xem tour có đang chạy không (dựa trên departure_schedules)
+                            $is_tour_running = false;
+                            $has_departures = !empty($tour['departure_count']) && $tour['departure_count'] > 0;
+                            
+                            // Nếu tour có lịch khởi hành và status là 'in_progress' thì không thể xóa
+                            $can_delete = ($tour['status'] !== 'in_progress' && !$has_departures);
+                        ?>
                         <tr>
                             <td>
-                                <span class="fw-bold text-primary"><?php echo $tour['tour_code']; ?></span>
+                                <a href="javascript:void(0)" class="fw-bold text-primary text-decoration-none" 
+                                   data-bs-toggle="modal" data-bs-target="#tourDetailModal" 
+                                   onclick="showTourDetail(<?php echo htmlspecialchars(json_encode($tour, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)); ?>)">
+                                    <?php echo $tour['tour_code']; ?>
+                                </a>
+                                <br>
+                                <small class="text-muted"><?php echo date('d/m/Y', strtotime($tour['created_at'])); ?></small>
                             </td>
                             <td>
-                                <div class="d-flex align-items-center">
-                                    <div>
-                                        <h6 class="mb-0"><?php echo htmlspecialchars($tour['tour_name']); ?></h6>
-                                        <small class="text-muted"><?php echo $tour['max_participants']; ?> chỗ</small>
+                                <div class="d-flex align-items-start">
+                                    <?php if ($has_images): ?>
+                                    <div class="flex-shrink-0 me-3">
+                                        <div class="bg-light rounded tour-thumbnail" 
+                                             style="background-image: url('<?php echo htmlspecialchars($tour['featured_image']); ?>');"
+                                             data-bs-toggle="modal" data-bs-target="#imageGalleryModal"
+                                             onclick="showImageGallery(<?php echo $tour['tour_id']; ?>, '<?php echo htmlspecialchars($tour['tour_name']); ?>')">
+                                        </div>
+                                    </div>
+                                    <?php endif; ?>
+                                    <div class="flex-grow-1">
+                                        <h6 class="mb-1" style="max-width: 300px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                            <?php echo htmlspecialchars($tour['tour_name']); ?>
+                                        </h6>
+                                        <div class="text-muted small">
+                                            <i class="bi bi-geo-alt me-1"></i><?php echo htmlspecialchars($tour['destination']); ?>
+                                            <br>
+                                            <i class="bi bi-people me-1"></i>SL tối đa: <?php echo $tour['max_participants'] ?? 'N/A'; ?>
+                                            <br>
+                                            <i class="bi bi-signpost me-1"></i><?php echo htmlspecialchars($tour['difficulty'] ?? 'medium'); ?>
+                                        </div>
                                     </div>
                                 </div>
                             </td>
-                            <td><?php echo htmlspecialchars($tour['destination']); ?></td>
                             <td>
-                                <span class="badge bg-light text-dark">
-                                    <i class="bi bi-clock me-1"></i><?php echo $tour['duration_days']; ?> ngày
-                                </span>
+                                <div class="text-center">
+                                    <div class="fw-bold text-primary"><?php echo $duration_days; ?>N<?php echo $duration_days > 1 ? $duration_days - 1 : ''; ?>Đ</div>
+                                    <small class="text-muted"><?php echo $date_range; ?></small>
+                                    <?php if ($tour['status'] === 'in_progress'): ?>
+                                    <br>
+                                    <span class="badge bg-danger badge-sm">Đang tiến hành</span>
+                                    <?php endif; ?>
+                                </div>
                             </td>
-                            <td class="text-end fw-bold text-success">
-                                <?php echo number_format($tour['price_adult']); ?> ₫
+                            <td class="text-end">
+                                <div class="fw-bold text-success"><?php echo number_format($price_adult); ?>₫</div>
+                                <small class="text-muted">
+                                    Người lớn<br>
+                                    <?php if ($price_child > 0): ?>
+                                    <?php echo number_format($price_child); ?>₫ trẻ em
+                                    <?php endif; ?>
+                                </small>
                             </td>
-                            <td>
+                            <td class="text-center">
+                                <?php if ($has_images): ?>
+                                <button type="button" class="btn btn-sm btn-success" 
+                                        data-bs-toggle="modal" data-bs-target="#imageGalleryModal"
+                                        onclick="showImageGallery(<?php echo $tour['tour_id']; ?>, '<?php echo htmlspecialchars($tour['tour_name']); ?>')"
+                                        data-bs-toggle="tooltip" title="Xem hình ảnh tour">
+                                    <i class="bi bi-image"></i>
+                                </button>
+                                <?php else: ?>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled
+                                        data-bs-toggle="tooltip" title="Chưa có hình ảnh">
+                                    <i class="bi bi-image"></i>
+                                </button>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
+                                <?php if ($has_itinerary): ?>
+                                <button type="button" class="btn btn-sm btn-info" 
+                                        data-bs-toggle="modal" data-bs-target="#itineraryModal"
+                                        onclick="showItinerary(<?php echo $tour['tour_id']; ?>, '<?php echo htmlspecialchars($tour['tour_name']); ?>')"
+                                        data-bs-toggle="tooltip" title="Xem lịch trình chi tiết">
+                                    <i class="bi bi-calendar-check"></i>
+                                </button>
+                                <?php else: ?>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled
+                                        data-bs-toggle="tooltip" title="Chưa có lịch trình">
+                                    <i class="bi bi-calendar"></i>
+                                </button>
+                                <?php endif; ?>
+                            </td>
+                            <td class="text-center">
                                 <?php 
                                 $status_config = [
-                                    'draft' => ['class' => 'bg-warning', 'text' => 'Bản nháp'],
-                                    'published' => ['class' => 'bg-success', 'text' => 'Đã xuất bản'],
-                                    'locked' => ['class' => 'bg-danger', 'text' => 'Đã khóa']
+                                    'draft' => [
+                                        'class' => 'bg-warning', 
+                                        'text' => 'Bản nháp', 
+                                        'icon' => 'bi-pencil',
+                                        'description' => 'Tour đang được soạn thảo, có thể chỉnh sửa và xóa'
+                                    ],
+                                    'published' => [
+                                        'class' => 'bg-success', 
+                                        'text' => 'Đã xuất bản', 
+                                        'icon' => 'bi-check-circle',
+                                        'description' => 'Tour đã hoàn thành tất cả thông tin và sẵn sàng'
+                                    ],
+                                    'in_progress' => [
+                                        'class' => 'bg-info', 
+                                        'text' => 'Đang tiến hành', 
+                                        'icon' => 'bi-play-circle',
+                                        'description' => 'Tour đang trong quá trình thực hiện, không thể xóa'
+                                    ],
+                                    'archived' => [
+                                        'class' => 'bg-secondary', 
+                                        'text' => 'Đã lưu trữ', 
+                                        'icon' => 'bi-archive',
+                                        'description' => 'Tour đã được lưu trữ'
+                                    ]
                                 ];
-                                $status = $status_config[$tour['status']] ?? ['class' => 'bg-secondary', 'text' => $tour['status']];
+                                $status = $status_config[$tour['status']] ?? ['class' => 'bg-secondary', 'text' => $tour['status'], 'icon' => 'bi-question', 'description' => ''];
                                 ?>
-                                <span class="badge <?php echo $status['class']; ?>">
-                                    <?php echo $status['text']; ?>
+                                <span class="badge <?php echo $status['class']; ?>" 
+                                      data-bs-toggle="tooltip" 
+                                      title="<?php echo $status['description']; ?>">
+                                    <i class="<?php echo $status['icon']; ?> me-1"></i><?php echo $status['text']; ?>
                                 </span>
                             </td>
                             <td class="text-center">
-                                <div class="btn-group" role="group">
+                                <div class="btn-group btn-group-sm" role="group">
                                     <a href="?act=admin_tours_edit&id=<?php echo $tour['tour_id']; ?>" 
-                                       class="btn btn-sm btn-outline-primary"
+                                       class="btn btn-outline-primary"
                                        data-bs-toggle="tooltip" title="Sửa tour">
                                         <i class="bi bi-pencil"></i>
                                     </a>
+                                    <button type="button" class="btn btn-outline-info"
+                                            data-bs-toggle="modal" data-bs-target="#tourDetailModal" 
+                                            onclick="showTourDetail(<?php echo htmlspecialchars(json_encode($tour, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP)); ?>)"
+                                            data-bs-toggle="tooltip" title="Xem chi tiết">
+                                        <i class="bi bi-eye"></i>
+                                    </button>
+                                    <?php if ($can_delete): ?>
                                     <a href="?act=admin_tours_delete&id=<?php echo $tour['tour_id']; ?>" 
-                                       class="btn btn-sm btn-outline-danger"
+                                       class="btn btn-outline-danger"
                                        data-bs-toggle="tooltip" title="Xóa tour"
-                                       onclick="return confirm('Xóa tour <?php echo htmlspecialchars($tour['tour_name']); ?>?')">
+                                       onclick="return confirm('Bạn có chắc chắn muốn xóa tour <?php echo htmlspecialchars($tour['tour_name']); ?>?')">
                                         <i class="bi bi-trash"></i>
                                     </a>
+                                    <?php else: ?>
+                                    <button type="button" class="btn btn-outline-secondary"
+                                            data-bs-toggle="tooltip" 
+                                            title="Tour đang tiến hành hoặc có lịch khởi hành không thể xóa"
+                                            disabled>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>
@@ -135,21 +362,301 @@ require_once '../header.php';
     </div>
 </div>
 
-<!-- Pagination (có thể thêm sau) -->
-<?php if (count($tours) > 0): ?>
+<!-- Pagination -->
+<?php if (count($tours) > 0 && ($total_pages ?? 1) > 1): ?>
 <nav class="mt-4">
     <ul class="pagination justify-content-center">
-        <li class="page-item disabled">
-            <a class="page-link" href="#" tabindex="-1">Previous</a>
+        <li class="page-item <?php echo ($current_page ?? 1) <= 1 ? 'disabled' : ''; ?>">
+            <a class="page-link" href="?act=admin_tours&page=<?php echo ($current_page ?? 1) - 1; ?><?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?><?php echo isset($_GET['status']) ? '&status=' . $_GET['status'] : ''; ?><?php echo isset($_GET['destination']) ? '&destination=' . $_GET['destination'] : ''; ?><?php echo isset($_GET['sort']) ? '&sort=' . $_GET['sort'] : ''; ?>">Trước</a>
         </li>
-        <li class="page-item active"><a class="page-link" href="#">1</a></li>
-        <li class="page-item"><a class="page-link" href="#">2</a></li>
-        <li class="page-item"><a class="page-link" href="#">3</a></li>
-        <li class="page-item">
-            <a class="page-link" href="#">Next</a>
+        
+        <?php for ($i = 1; $i <= ($total_pages ?? 1); $i++): ?>
+        <li class="page-item <?php echo ($current_page ?? 1) == $i ? 'active' : ''; ?>">
+            <a class="page-link" href="?act=admin_tours&page=<?php echo $i; ?><?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?><?php echo isset($_GET['status']) ? '&status=' . $_GET['status'] : ''; ?><?php echo isset($_GET['destination']) ? '&destination=' . $_GET['destination'] : ''; ?><?php echo isset($_GET['sort']) ? '&sort=' . $_GET['sort'] : ''; ?>"><?php echo $i; ?></a>
+        </li>
+        <?php endfor; ?>
+        
+        <li class="page-item <?php echo ($current_page ?? 1) >= ($total_pages ?? 1) ? 'disabled' : ''; ?>">
+            <a class="page-link" href="?act=admin_tours&page=<?php echo ($current_page ?? 1) + 1; ?><?php echo isset($_GET['search']) ? '&search=' . urlencode($_GET['search']) : ''; ?><?php echo isset($_GET['status']) ? '&status=' . $_GET['status'] : ''; ?><?php echo isset($_GET['destination']) ? '&destination=' . $_GET['destination'] : ''; ?><?php echo isset($_GET['sort']) ? '&sort=' . $_GET['sort'] : ''; ?>">Sau</a>
         </li>
     </ul>
 </nav>
 <?php endif; ?>
 
-<?php require_once '../footer.php'; ?>
+<!-- Modal chi tiết tour -->
+<div class="modal fade" id="tourDetailModal" tabindex="-1" aria-labelledby="tourDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tourDetailModalLabel">Chi tiết Tour</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="tourDetailContent">
+                    <!-- Nội dung sẽ được điền bằng JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal hình ảnh -->
+<div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-labelledby="imageGalleryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageGalleryModalLabel">Hình ảnh Tour</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="imageGalleryContent">
+                    <!-- Nội dung hình ảnh sẽ được điền bằng JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal lịch trình -->
+<div class="modal fade" id="itineraryModal" tabindex="-1" aria-labelledby="itineraryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itineraryModalLabel">Lịch trình Tour</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="itineraryContent">
+                    <!-- Nội dung lịch trình sẽ được điền bằng JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tour-thumbnail {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background-size: cover;
+    background-position: center;
+}
+.tour-thumbnail:hover {
+    transform: scale(1.05);
+}
+.nav-tabs .nav-link.active {
+    font-weight: 600;
+}
+.badge-sm {
+    font-size: 0.65em;
+    padding: 0.25em 0.4em;
+}
+.image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+.gallery-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.gallery-image:hover {
+    transform: scale(1.05);
+}
+.itinerary-day {
+    border-left: 3px solid #0d6efd;
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+.itinerary-day h6 {
+    color: #0d6efd;
+    margin-bottom: 10px;
+}
+</style>
+
+<script>
+// Hiển thị chi tiết tour
+function showTourDetail(tour) {
+    const content = document.getElementById('tourDetailContent');
+    
+    let html = `
+        <div class="row">
+            <div class="col-md-4">
+                ${tour.featured_image ? 
+                    `<img src="${tour.featured_image}" class="img-fluid rounded mb-3" alt="${tour.tour_name}">` : 
+                    '<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;"><i class="bi bi-image text-muted fs-1"></i></div>'
+                }
+            </div>
+            <div class="col-md-8">
+                <h4>${tour.tour_name}</h4>
+                <table class="table table-sm">
+                    <tr>
+                        <td width="120"><strong>Mã tour:</strong></td>
+                        <td>${tour.tour_code}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Điểm đến:</strong></td>
+                        <td>${tour.destination || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Thời gian:</strong></td>
+                        <td>${tour.duration_days || 0} ngày</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Độ khó:</strong></td>
+                        <td>${getDifficultyText(tour.difficulty)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SL tối đa:</strong></td>
+                        <td>${tour.max_participants || 'N/A'} người</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Giá người lớn:</strong></td>
+                        <td class="text-success fw-bold">${tour.price_adult ? new Intl.NumberFormat('vi-VN').format(tour.price_adult) + '₫' : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Giá trẻ em:</strong></td>
+                        <td class="text-success">${tour.price_child ? new Intl.NumberFormat('vi-VN').format(tour.price_child) + '₫' : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Trạng thái:</strong></td>
+                        <td><span class="badge ${getStatusBadgeClass(tour.status)}">${getStatusText(tour.status)}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ngày tạo:</strong></td>
+                        <td>${new Date(tour.created_at).toLocaleDateString('vi-VN')}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        ${tour.description ? `
+        <div class="mt-3">
+            <h6>Mô tả:</h6>
+            <p class="text-muted">${tour.description}</p>
+        </div>
+        ` : ''}
+    `;
+    
+    content.innerHTML = html;
+}
+
+// Hiển thị gallery hình ảnh
+function showImageGallery(tourId, tourName) {
+    const content = document.getElementById('imageGalleryContent');
+    
+    // Giả lập dữ liệu hình ảnh - trong thực tế bạn sẽ gọi API để lấy hình ảnh
+    const images = [
+        'https://via.placeholder.com/400x300/007bff/ffffff?text=Hình+1',
+        'https://via.placeholder.com/400x300/28a745/ffffff?text=Hình+2',
+        'https://via.placeholder.com/400x300/dc3545/ffffff?text=Hình+3'
+    ];
+    
+    let html = `
+        <h6>Hình ảnh tour: ${tourName}</h6>
+        <div class="image-gallery">
+    `;
+    
+    images.forEach((img, index) => {
+        html += `<img src="${img}" class="gallery-image" alt="Hình ${index + 1}">`;
+    });
+    
+    html += `</div>`;
+    
+    content.innerHTML = html;
+}
+
+// Hiển thị lịch trình
+function showItinerary(tourId, tourName) {
+    const content = document.getElementById('itineraryContent');
+    
+    // Giả lập dữ liệu lịch trình - trong thực tế bạn sẽ gọi API để lấy lịch trình
+    const itinerary = [
+        {
+            day: 1,
+            title: 'Khởi hành Hà Nội - Điểm đến',
+            description: 'Di chuyển từ Hà Nội đến điểm đến chính',
+            activities: 'Ăn sáng, Di chuyển, Ăn trưa, Tham quan',
+            meals: 'Sáng, Trưa, Tối'
+        },
+        {
+            day: 2,
+            title: 'Khám phá điểm đến',
+            description: 'Tham quan các địa điểm nổi tiếng',
+            activities: 'Ăn sáng, Tham quan, Ăn trưa, Nghỉ ngơi',
+            meals: 'Sáng, Trưa, Tối'
+        }
+    ];
+    
+    let html = `
+        <h6>Lịch trình tour: ${tourName}</h6>
+        <div class="itinerary-list">
+    `;
+    
+    itinerary.forEach(day => {
+        html += `
+            <div class="itinerary-day">
+                <h6>Ngày ${day.day}: ${day.title}</h6>
+                <p><strong>Mô tả:</strong> ${day.description}</p>
+                <p><strong>Hoạt động:</strong> ${day.activities}</p>
+                <p><strong>Bữa ăn:</strong> ${day.meals}</p>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    
+    content.innerHTML = html;
+}
+
+// Helper functions
+function getDifficultyText(difficulty) {
+    const difficulties = {
+        'easy': 'Dễ',
+        'medium': 'Trung bình',
+        'hard': 'Khó'
+    };
+    return difficulties[difficulty] || difficulty;
+}
+
+function getStatusText(status) {
+    const statuses = {
+        'draft': 'Bản nháp',
+        'published': 'Đã xuất bản',
+        'in_progress': 'Đang tiến hành',
+        'archived': 'Đã lưu trữ'
+    };
+    return statuses[status] || status;
+}
+
+function getStatusBadgeClass(status) {
+    const classes = {
+        'draft': 'bg-warning',
+        'published': 'bg-success',
+        'in_progress': 'bg-info',
+        'archived': 'bg-secondary'
+    };
+    return classes[status] || 'bg-secondary';
+}
+
+// Khởi tạo tooltip
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+
+<?php require_once __DIR__ . '/../footer.php'; ?>
