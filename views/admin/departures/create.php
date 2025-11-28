@@ -293,12 +293,13 @@ $page_title = "Tạo Lịch khởi hành";
                         
                         <div class="form-group">
                             <label>Điểm tập trung:</label>
-                            <textarea name="meeting_point" rows="2" placeholder="Địa điểm và thông tin tập trung..."></textarea>
+                            <textarea name="meeting_point" rows="2" placeholder="Địa điểm và thông tin tập trung..."><?php echo htmlspecialchars($_POST['meeting_point'] ?? ''); ?></textarea>
+
                         </div>
                         
                         <div class="form-group">
                             <label>Ghi chú vận hành:</label>
-                            <textarea name="operational_notes" rows="3" placeholder="Ghi chú đặc biệt cho đội vận hành..."></textarea>
+                            <textarea name="operational_notes" rows="3" placeholder="Ghi chú đặc biệt cho đội vận hành..."><?php echo htmlspecialchars($_POST['operational_notes'] ?? ''); ?></textarea>
                         </div>
                         
                         <button type="submit" class="btn">💾 Tạo lịch khởi hành</button>

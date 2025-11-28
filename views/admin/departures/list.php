@@ -236,8 +236,8 @@ $page_title = "Quản lý Lịch khởi hành";
                                 <?php foreach ($departures as $departure): ?>
                                 <tr>
                                     <td><strong><?php echo $departure['tour_code']; ?></strong></td>
-                                    <td><?php echo htmlspecialchars($departure['tour_name']); ?></td>
-                                    <td><?php echo date('d/m/Y', strtotime($departure['departure_date'])); ?></td>
+                                    <td><?php echo htmlspecialchars($departure['tour_name'] ?? ''); ?></td>
+                                    <td><?php echo date('d/m/Y', strtotime($departure['departure_date'] ?? '')); ?></td>
                                     <td><?php echo $departure['departure_time'] ? date('H:i', strtotime($departure['departure_time'])) : '--:--'; ?></td>
                                     <td><?php echo $departure['expected_slots']; ?> chỗ</td>
                                     <td><?php echo number_format($departure['price_adult']); ?> VNĐ</td>
