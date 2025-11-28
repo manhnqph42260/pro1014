@@ -1,6 +1,24 @@
 <?php
 $page_title = "Quản lý Tour";
-require_once '../pro1014/views/admin/header.php';
+require_once __DIR__ . '/../header.php';
+
+// Hiển thị thông báo thành công
+if (isset($_SESSION['success_message'])) {
+    echo '<div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="bi bi-check-circle me-2"></i>' . $_SESSION['success_message'] . '
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>';
+    unset($_SESSION['success_message']);
+}
+
+// Hiển thị thông báo lỗi
+if (isset($_SESSION['error_message'])) {
+    echo '<div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="bi bi-exclamation-triangle me-2"></i>' . $_SESSION['error_message'] . '
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>';
+    unset($_SESSION['error_message']);
+}
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
@@ -365,4 +383,280 @@ require_once '../pro1014/views/admin/header.php';
 </nav>
 <?php endif; ?>
 
-<?php require_once '../pro1014/views/admin/footer.php'; ?>
+<!-- Modal chi tiết tour -->
+<div class="modal fade" id="tourDetailModal" tabindex="-1" aria-labelledby="tourDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="tourDetailModalLabel">Chi tiết Tour</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="tourDetailContent">
+                    <!-- Nội dung sẽ được điền bằng JavaScript -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal hình ảnh -->
+<div class="modal fade" id="imageGalleryModal" tabindex="-1" aria-labelledby="imageGalleryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageGalleryModalLabel">Hình ảnh Tour</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="imageGalleryContent">
+                    <!-- Nội dung hình ảnh sẽ được điền bằng JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal lịch trình -->
+<div class="modal fade" id="itineraryModal" tabindex="-1" aria-labelledby="itineraryModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="itineraryModalLabel">Lịch trình Tour</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="itineraryContent">
+                    <!-- Nội dung lịch trình sẽ được điền bằng JavaScript -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.tour-thumbnail {
+    width: 60px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    background-size: cover;
+    background-position: center;
+}
+.tour-thumbnail:hover {
+    transform: scale(1.05);
+}
+.nav-tabs .nav-link.active {
+    font-weight: 600;
+}
+.badge-sm {
+    font-size: 0.65em;
+    padding: 0.25em 0.4em;
+}
+.image-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 15px;
+}
+.gallery-image {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.gallery-image:hover {
+    transform: scale(1.05);
+}
+.itinerary-day {
+    border-left: 3px solid #0d6efd;
+    padding-left: 15px;
+    margin-bottom: 20px;
+}
+.itinerary-day h6 {
+    color: #0d6efd;
+    margin-bottom: 10px;
+}
+</style>
+
+<script>
+// Hiển thị chi tiết tour
+function showTourDetail(tour) {
+    const content = document.getElementById('tourDetailContent');
+    
+    let html = `
+        <div class="row">
+            <div class="col-md-4">
+                ${tour.featured_image ? 
+                    `<img src="${tour.featured_image}" class="img-fluid rounded mb-3" alt="${tour.tour_name}">` : 
+                    '<div class="bg-light rounded d-flex align-items-center justify-content-center" style="height: 200px;"><i class="bi bi-image text-muted fs-1"></i></div>'
+                }
+            </div>
+            <div class="col-md-8">
+                <h4>${tour.tour_name}</h4>
+                <table class="table table-sm">
+                    <tr>
+                        <td width="120"><strong>Mã tour:</strong></td>
+                        <td>${tour.tour_code}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Điểm đến:</strong></td>
+                        <td>${tour.destination || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Thời gian:</strong></td>
+                        <td>${tour.duration_days || 0} ngày</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Độ khó:</strong></td>
+                        <td>${getDifficultyText(tour.difficulty)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>SL tối đa:</strong></td>
+                        <td>${tour.max_participants || 'N/A'} người</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Giá người lớn:</strong></td>
+                        <td class="text-success fw-bold">${tour.price_adult ? new Intl.NumberFormat('vi-VN').format(tour.price_adult) + '₫' : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Giá trẻ em:</strong></td>
+                        <td class="text-success">${tour.price_child ? new Intl.NumberFormat('vi-VN').format(tour.price_child) + '₫' : 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Trạng thái:</strong></td>
+                        <td><span class="badge ${getStatusBadgeClass(tour.status)}">${getStatusText(tour.status)}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ngày tạo:</strong></td>
+                        <td>${new Date(tour.created_at).toLocaleDateString('vi-VN')}</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        ${tour.description ? `
+        <div class="mt-3">
+            <h6>Mô tả:</h6>
+            <p class="text-muted">${tour.description}</p>
+        </div>
+        ` : ''}
+    `;
+    
+    content.innerHTML = html;
+}
+
+// Hiển thị gallery hình ảnh
+function showImageGallery(tourId, tourName) {
+    const content = document.getElementById('imageGalleryContent');
+    
+    // Giả lập dữ liệu hình ảnh - trong thực tế bạn sẽ gọi API để lấy hình ảnh
+    const images = [
+        'https://via.placeholder.com/400x300/007bff/ffffff?text=Hình+1',
+        'https://via.placeholder.com/400x300/28a745/ffffff?text=Hình+2',
+        'https://via.placeholder.com/400x300/dc3545/ffffff?text=Hình+3'
+    ];
+    
+    let html = `
+        <h6>Hình ảnh tour: ${tourName}</h6>
+        <div class="image-gallery">
+    `;
+    
+    images.forEach((img, index) => {
+        html += `<img src="${img}" class="gallery-image" alt="Hình ${index + 1}">`;
+    });
+    
+    html += `</div>`;
+    
+    content.innerHTML = html;
+}
+
+// Hiển thị lịch trình
+function showItinerary(tourId, tourName) {
+    const content = document.getElementById('itineraryContent');
+    
+    // Giả lập dữ liệu lịch trình - trong thực tế bạn sẽ gọi API để lấy lịch trình
+    const itinerary = [
+        {
+            day: 1,
+            title: 'Khởi hành Hà Nội - Điểm đến',
+            description: 'Di chuyển từ Hà Nội đến điểm đến chính',
+            activities: 'Ăn sáng, Di chuyển, Ăn trưa, Tham quan',
+            meals: 'Sáng, Trưa, Tối'
+        },
+        {
+            day: 2,
+            title: 'Khám phá điểm đến',
+            description: 'Tham quan các địa điểm nổi tiếng',
+            activities: 'Ăn sáng, Tham quan, Ăn trưa, Nghỉ ngơi',
+            meals: 'Sáng, Trưa, Tối'
+        }
+    ];
+    
+    let html = `
+        <h6>Lịch trình tour: ${tourName}</h6>
+        <div class="itinerary-list">
+    `;
+    
+    itinerary.forEach(day => {
+        html += `
+            <div class="itinerary-day">
+                <h6>Ngày ${day.day}: ${day.title}</h6>
+                <p><strong>Mô tả:</strong> ${day.description}</p>
+                <p><strong>Hoạt động:</strong> ${day.activities}</p>
+                <p><strong>Bữa ăn:</strong> ${day.meals}</p>
+            </div>
+        `;
+    });
+    
+    html += `</div>`;
+    
+    content.innerHTML = html;
+}
+
+// Helper functions
+function getDifficultyText(difficulty) {
+    const difficulties = {
+        'easy': 'Dễ',
+        'medium': 'Trung bình',
+        'hard': 'Khó'
+    };
+    return difficulties[difficulty] || difficulty;
+}
+
+function getStatusText(status) {
+    const statuses = {
+        'draft': 'Bản nháp',
+        'published': 'Đã xuất bản',
+        'in_progress': 'Đang tiến hành',
+        'archived': 'Đã lưu trữ'
+    };
+    return statuses[status] || status;
+}
+
+function getStatusBadgeClass(status) {
+    const classes = {
+        'draft': 'bg-warning',
+        'published': 'bg-success',
+        'in_progress': 'bg-info',
+        'archived': 'bg-secondary'
+    };
+    return classes[status] || 'bg-secondary';
+}
+
+// Khởi tạo tooltip
+document.addEventListener('DOMContentLoaded', function() {
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>
+
+<?php require_once __DIR__ . '/../footer.php'; ?>
