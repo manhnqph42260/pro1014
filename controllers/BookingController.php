@@ -1,72 +1,34 @@
 <?php
 class BookingController {
     
+    // Danh sách booking
     public function adminList() {
         $this->checkAdminAuth();
         require_once './commons/env.php';
         require_once './commons/function.php';
+        require_once './models/BookingModel.php';
         
-        $conn = connectDB();
-        
-        // Xử lý tìm kiếm và filter
         $search = $_GET['search'] ?? '';
         $status_filter = $_GET['status'] ?? '';
         
-        $query = "SELECT b.*, t.tour_name, d.departure_date 
-                  FROM bookings b
-                  JOIN departure_schedules d ON b.departure_id = d.departure_id
-                  JOIN tours t ON d.tour_id = t.tour_id
-                  WHERE 1=1";
-        $params = [];
+        $bookings = BookingModel::getAll($search, $status_filter);
+        $stats = BookingModel::getStats();
         
-        if (!empty($search)) {
-            $query .= " AND (b.booking_code LIKE :search OR b.customer_name LIKE :search OR b.customer_phone LIKE :search)";
-            $params['search'] = "%$search%";
-        }
-        
-        if (!empty($status_filter)) {
-            $query .= " AND b.status = :status";
-            $params['status'] = $status_filter;
-        }
-        
-        $query .= " ORDER BY b.booked_at DESC";
-        $stmt = $conn->prepare($query);
-        $stmt->execute($params);
-        $bookings = $stmt->fetchAll();
-        
-        // Thống kê
-        $stats = $conn->query("
-            SELECT 
-                COUNT(*) as total_bookings,
-                SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed,
-                SUM(CASE WHEN status = 'cancelled' THEN 1 ELSE 0 END) as cancelled,
-                SUM(total_guests) as total_guests
-            FROM bookings
-        ")->fetch();
-        
-        require_once './views/admin/bookings/list.php';
+        require_once './views/admin/booking/list.php';
     }
     
+    // Tạo booking mới
     public function adminCreate() {
         $this->checkAdminAuth();
         require_once './commons/env.php';
         require_once './commons/function.php';
+        require_once './models/BookingModel.php';
         
-        $conn = connectDB();
-        
-        // Lấy danh sách lịch khởi hành sắp tới
-        $departures = $conn->query("
-            SELECT d.departure_id, t.tour_name, d.departure_date, d.available_slots, 
-                   d.price_adult, d.price_child, t.duration_days
-            FROM departure_schedules d
-            JOIN tours t ON d.tour_id = t.tour_id
-            WHERE d.departure_date >= CURDATE() AND d.status = 'scheduled'
-            ORDER BY d.departure_date ASC
-        ")->fetchAll();
+        $departures = BookingModel::getAvailableDepartures();
         
         if ($_POST) {
             try {
+                $conn = connectDB();
                 $conn->beginTransaction();
                 
                 // Generate booking code
@@ -78,28 +40,43 @@ class BookingController {
                 $infant_count = intval($_POST['infant_count']);
                 $total_guests = $adult_count + $child_count + $infant_count;
                 
-                // Get departure info for pricing
-                $departure_stmt = $conn->prepare("SELECT price_adult, price_child, available_slots FROM departure_schedules WHERE departure_id = ?");
+                // Get departure info for pricing và kiểm tra số chỗ
+                $departure_stmt = $conn->prepare("
+                    SELECT 
+                        d.departure_id,
+                        d.price_adult, 
+                        d.price_child, 
+                        d.expected_slots,
+                        COALESCE((
+                            SELECT SUM(b2.total_guests) 
+                            FROM bookings b2 
+                            WHERE b2.departure_id = d.departure_id 
+                            AND b2.status != 'cancelled'
+                        ), 0) as booked_slots
+                    FROM departure_schedules d
+                    WHERE d.departure_id = ?
+                ");
                 $departure_stmt->execute([$_POST['departure_id']]);
                 $departure = $departure_stmt->fetch();
                 
+                if (!$departure) {
+                    throw new Exception("Không tìm thấy thông tin lịch khởi hành!");
+                }
+                
                 // Check available slots
-                if ($departure['available_slots'] < $total_guests) {
-                    throw new Exception("Chỉ còn " . $departure['available_slots'] . " chỗ trống. Không đủ cho " . $total_guests . " khách.");
+                $expected_slots = $departure['expected_slots'] ?? 0;
+                $booked_slots = $departure['booked_slots'] ?? 0;
+                $available_slots = $expected_slots - $booked_slots;
+                
+                if ($available_slots < $total_guests) {
+                    throw new Exception("Chỉ còn " . $available_slots . " chỗ trống. Không đủ cho " . $total_guests . " khách.");
                 }
                 
                 $total_amount = ($adult_count * $departure['price_adult']) + ($child_count * $departure['price_child']);
-                $deposit_amount = $total_amount * 0.3; // 30% deposit
+                $deposit_amount = $total_amount * 0.3;
                 
                 // Insert booking
-                $query = "INSERT INTO bookings (booking_code, departure_id, customer_name, customer_phone, customer_email, 
-                          customer_address, booking_type, group_name, company_name, adult_count, child_count, 
-                          infant_count, total_guests, special_requests, total_amount, deposit_amount, booked_by) 
-                          VALUES (:code, :departure_id, :name, :phone, :email, :address, :type, :group_name, 
-                          :company, :adults, :children, :infants, :total_guests, :requests, :total, :deposit, :booked_by)";
-                
-                $stmt = $conn->prepare($query);
-                $stmt->execute([
+                $booking_data = [
                     'code' => $booking_code,
                     'departure_id' => $_POST['departure_id'],
                     'name' => $_POST['customer_name'],
@@ -117,34 +94,25 @@ class BookingController {
                     'total' => $total_amount,
                     'deposit' => $deposit_amount,
                     'booked_by' => $_SESSION['admin_id']
-                ]);
+                ];
                 
-                $booking_id = $conn->lastInsertId();
+                $booking_id = BookingModel::create($booking_data);
                 
-                // Insert guest details if provided
+                // Insert guest details
                 if (isset($_POST['guest_names']) && is_array($_POST['guest_names'])) {
-                    $guest_stmt = $conn->prepare("INSERT INTO booking_guests (booking_id, full_name, date_of_birth, gender, guest_type) VALUES (?, ?, ?, ?, ?)");
-                    
                     foreach ($_POST['guest_names'] as $index => $guest_name) {
                         if (!empty(trim($guest_name))) {
-                            $guest_type = $_POST['guest_types'][$index] ?? 'adult';
-                            $guest_dob = $_POST['guest_dobs'][$index] ?? null;
-                            $guest_gender = $_POST['guest_genders'][$index] ?? null;
-                            
-                            $guest_stmt->execute([
+                            $guest_data = [
                                 $booking_id,
                                 trim($guest_name),
-                                $guest_dob ?: null,
-                                $guest_gender ?: null,
-                                $guest_type
-                            ]);
+                                $_POST['guest_dobs'][$index] ?? null,
+                                $_POST['guest_genders'][$index] ?? null,
+                                $_POST['guest_types'][$index] ?? 'adult'
+                            ];
+                            BookingGuestModel::create($guest_data);
                         }
                     }
                 }
-                
-                // Update available slots
-                $update_slots = $conn->prepare("UPDATE departure_schedules SET available_slots = available_slots - ? WHERE departure_id = ?");
-                $update_slots->execute([$total_guests, $_POST['departure_id']]);
                 
                 $conn->commit();
                 
@@ -153,34 +121,25 @@ class BookingController {
                 exit();
                 
             } catch (Exception $e) {
-                $conn->rollBack();
+                if (isset($conn)) {
+                    $conn->rollBack();
+                }
                 $error = "Lỗi khi tạo booking: " . $e->getMessage();
             }
         }
         
-        require_once './views/admin/bookings/create.php';
+        require_once './views/admin/booking/create.php';
     }
     
+    // Xem chi tiết booking - XÓA REQUIRE PaymentModel
     public function adminView() {
         $this->checkAdminAuth();
         require_once './commons/env.php';
         require_once './commons/function.php';
+        require_once './models/BookingModel.php';
         
         $booking_id = $_GET['id'] ?? 0;
-        $conn = connectDB();
-        
-        // Lấy thông tin booking
-        $query = "SELECT b.*, t.tour_name, t.tour_code, d.departure_date, d.departure_time, 
-                         d.meeting_point, a1.username as booked_by_name, a2.username as confirmed_by_name
-                  FROM bookings b
-                  JOIN departure_schedules d ON b.departure_id = d.departure_id
-                  JOIN tours t ON d.tour_id = t.tour_id
-                  LEFT JOIN admins a1 ON b.booked_by = a1.admin_id
-                  LEFT JOIN admins a2 ON b.confirmed_by = a2.admin_id
-                  WHERE b.booking_id = ?";
-        $stmt = $conn->prepare($query);
-        $stmt->execute([$booking_id]);
-        $booking = $stmt->fetch();
+        $booking = BookingModel::getById($booking_id);
         
         if (!$booking) {
             $_SESSION['error'] = "Booking không tồn tại!";
@@ -188,28 +147,99 @@ class BookingController {
             exit();
         }
         
-        // Lấy danh sách khách
-        $guests = $conn->query("SELECT * FROM booking_guests WHERE booking_id = " . $booking_id)->fetchAll();
+        // GỌI TRỰC TIẾP CÁC MODEL
+        $guests = BookingGuestModel::getByBookingId($booking_id);
+        $payments = PaymentModel::getByBookingId($booking_id);
+        $total_paid = PaymentModel::getTotalPaid($booking_id);
         
-        // Lấy lịch sử thanh toán
-        $payments = $conn->query("SELECT * FROM payments WHERE booking_id = " . $booking_id . " ORDER BY created_at DESC")->fetchAll();
-        
-        require_once './views/admin/bookings/view.php';
+        require_once './views/admin/booking/view.php';
     }
     
+    // Chỉnh sửa booking
+    public function adminEdit() {
+        $this->checkAdminAuth();
+        require_once './commons/env.php';
+        require_once './commons/function.php';
+        require_once './models/BookingModel.php';
+        
+        $booking_id = $_GET['id'] ?? 0;
+        $booking = BookingModel::getById($booking_id);
+        
+        if (!$booking) {
+            $_SESSION['error'] = "Booking không tồn tại!";
+            header("Location: ?act=admin_bookings");
+            exit();
+        }
+        
+        $departures = BookingModel::getAvailableDepartures();
+        $guests = BookingGuestModel::getByBookingId($booking_id);
+        
+        if ($_POST) {
+            try {
+                $adult_count = intval($_POST['adult_count']);
+                $child_count = intval($_POST['child_count']);
+                $infant_count = intval($_POST['infant_count']);
+                $total_guests = $adult_count + $child_count + $infant_count;
+                
+                $update_data = [
+                    'name' => $_POST['customer_name'],
+                    'phone' => $_POST['customer_phone'],
+                    'email' => $_POST['customer_email'] ?? '',
+                    'address' => $_POST['customer_address'] ?? '',
+                    'type' => $_POST['booking_type'],
+                    'group_name' => $_POST['group_name'] ?? '',
+                    'company' => $_POST['company_name'] ?? '',
+                    'adults' => $adult_count,
+                    'children' => $child_count,
+                    'infants' => $infant_count,
+                    'total_guests' => $total_guests,
+                    'requests' => $_POST['special_requests'] ?? '',
+                    'total' => $booking['total_amount']
+                ];
+                
+                BookingModel::update($booking_id, $update_data);
+                
+                // Xóa khách cũ và thêm mới
+                BookingGuestModel::deleteByBookingId($booking_id);
+                
+                if (isset($_POST['guest_names']) && is_array($_POST['guest_names'])) {
+                    foreach ($_POST['guest_names'] as $index => $guest_name) {
+                        if (!empty(trim($guest_name))) {
+                            $guest_data = [
+                                $booking_id,
+                                trim($guest_name),
+                                $_POST['guest_dobs'][$index] ?? null,
+                                $_POST['guest_genders'][$index] ?? null,
+                                $_POST['guest_types'][$index] ?? 'adult'
+                            ];
+                            BookingGuestModel::create($guest_data);
+                        }
+                    }
+                }
+                
+                $_SESSION['success'] = "Cập nhật booking thành công!";
+                header("Location: ?act=admin_bookings_view&id=" . $booking_id);
+                exit();
+                
+            } catch (Exception $e) {
+                $error = "Lỗi khi cập nhật booking: " . $e->getMessage();
+            }
+        }
+        
+        require_once './views/admin/booking/edit.php';
+    }
+    
+    // Xác nhận booking
     public function adminConfirm() {
         $this->checkAdminAuth();
         require_once './commons/env.php';
         require_once './commons/function.php';
+        require_once './models/BookingModel.php';
         
         $booking_id = $_GET['id'] ?? 0;
-        $conn = connectDB();
         
         try {
-            $query = "UPDATE bookings SET status = 'confirmed', confirmed_by = ?, confirmed_at = NOW() WHERE booking_id = ?";
-            $stmt = $conn->prepare($query);
-            $stmt->execute([$_SESSION['admin_id'], $booking_id]);
-            
+            BookingModel::confirm($booking_id, $_SESSION['admin_id']);
             $_SESSION['success'] = "Xác nhận booking thành công!";
         } catch (Exception $e) {
             $_SESSION['error'] = "Lỗi khi xác nhận booking: " . $e->getMessage();
@@ -219,6 +249,104 @@ class BookingController {
         exit();
     }
     
+    // Hủy booking
+    public function adminCancel() {
+        $this->checkAdminAuth();
+        require_once './commons/env.php';
+        require_once './commons/function.php';
+        require_once './models/BookingModel.php';
+        
+        $booking_id = $_GET['id'] ?? 0;
+        
+        try {
+            $conn = connectDB();
+            $conn->beginTransaction();
+            
+            // Lấy thông tin booking để trả lại số chỗ
+            $booking = BookingModel::getById($booking_id);
+            
+            // Cập nhật trạng thái booking
+            BookingModel::cancel($booking_id);
+            
+            // Trả lại số chỗ trống
+            $update_slots = $conn->prepare("UPDATE departure_schedules SET available_slots = available_slots + ? WHERE departure_id = ?");
+            $update_slots->execute([$booking['total_guests'], $booking['departure_id']]);
+            
+            $conn->commit();
+            
+            $_SESSION['success'] = "Hủy booking thành công!";
+        } catch (Exception $e) {
+            $conn->rollBack();
+            $_SESSION['error'] = "Lỗi khi hủy booking: " . $e->getMessage();
+        }
+        
+        header("Location: ?act=admin_bookings_view&id=" . $booking_id);
+        exit();
+    }
+    
+    // Thêm thanh toán - XÓA REQUIRE PaymentModel
+    public function adminAddPayment() {
+        $this->checkAdminAuth();
+        require_once './commons/env.php';
+        require_once './commons/function.php';
+        require_once './models/BookingModel.php';
+        
+        $booking_id = $_GET['id'] ?? 0;
+        $booking = BookingModel::getById($booking_id);
+        
+        if ($_POST) {
+            try {
+                $transaction_code = $_POST['transaction_code'] ?? 'PMT' . date('YmdHis') . rand(100, 999);
+                
+                $payment_data = [
+                    'booking_id' => $booking_id,
+                    'amount' => $_POST['amount'],
+                    'method' => $_POST['payment_method'],
+                    'date' => $_POST['payment_date'],
+                    'status' => $_POST['status'],
+                    'code' => $transaction_code,
+                    'notes' => $_POST['notes'] ?? '',
+                    'created_by' => $_SESSION['admin_id']
+                ];
+                
+                // GỌI TRỰC TIẾP PaymentModel
+                PaymentModel::create($payment_data);
+                
+                $_SESSION['success'] = "Thêm thanh toán thành công!";
+                header("Location: ?act=admin_bookings_view&id=" . $booking_id);
+                exit();
+                
+            } catch (Exception $e) {
+                $error = "Lỗi khi thêm thanh toán: " . $e->getMessage();
+            }
+        }
+        
+        require_once './views/admin/booking/add_payment.php';
+    }
+    
+    // Xóa thanh toán - XÓA REQUIRE PaymentModel
+    public function adminDeletePayment() {
+        $this->checkAdminAuth();
+        require_once './commons/env.php';
+        require_once './commons/function.php';
+        require_once './models/BookingModel.php';
+        
+        $payment_id = $_GET['payment_id'] ?? 0;
+        $booking_id = $_GET['booking_id'] ?? 0;
+        
+        try {
+            // GỌI TRỰC TIẾP PaymentModel
+            PaymentModel::delete($payment_id);
+            $_SESSION['success'] = "Xóa thanh toán thành công!";
+        } catch (Exception $e) {
+            $_SESSION['error'] = "Lỗi khi xóa thanh toán: " . $e->getMessage();
+        }
+        
+        header("Location: ?act=admin_bookings_view&id=" . $booking_id);
+        exit();
+    }
+    
+    // Kiểm tra đăng nhập admin
     private function checkAdminAuth() {
         if (!isset($_SESSION['admin_id'])) {
             header("Location: ?act=admin_login");

@@ -114,6 +114,7 @@ $page_title = "Dashboard Quản trị";
                 <a href="?act=admin_dashboard" class="nav-item active">📊 Dashboard</a>
                 <a href="?act=admin_tours" class="nav-item">🗺️ Quản lý Tour</a>
                 <a href="?act=admin_departures" class="nav-item">📅 Lịch khởi hành</a>
+                <a href="?act=admin_bookings" class="nav-item ">📋 Quản lý Booking</a>                
                 <a href="?act=admin_guides" class="nav-item">👨‍💼 HDV</a>
                 <a href="?act=admin_services" class="nav-item">🔔 Dịch vụ</a>
                 <a href="?act=admin_logout" class="nav-item">🚪 Đăng xuất</a>
