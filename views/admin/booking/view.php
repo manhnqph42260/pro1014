@@ -211,5 +211,54 @@ require_once './views/admin/header.php';
 <?php endif; ?>
     </div>
 </div>
-
+<!-- Cập nhật phần trạng thái -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">🔄 Quản lý Trạng thái</h5>
+        <div>
+            <a href="?act=admin_bookings_status_history&id=<?= $booking['booking_id'] ?>" class="btn btn-sm btn-info me-2">
+                <i class="fas fa-history"></i> Xem Lịch sử
+            </a>
+            <a href="?act=admin_bookings_update_status&id=<?= $booking['booking_id'] ?>" class="btn btn-sm btn-primary">
+                <i class="fas fa-sync-alt"></i> Cập nhật Trạng thái
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <p><strong>Trạng thái hiện tại:</strong></p>
+                <?php
+                $status_info = BookingModel::getStatusInfo($booking['status']);
+                ?>
+                <span class="badge bg-<?= $status_info['color'] ?> fs-6 p-2">
+                    <?= $status_info['icon'] ?> <?= $status_info['name'] ?>
+                </span>
+                <p class="mt-2 text-muted"><small><?= $status_info['description'] ?></small></p>
+            </div>
+            <div class="col-md-6">
+                <p><strong>Lịch sử thay đổi:</strong></p>
+                <?php
+                $change_count = BookingModel::getStatusChangeCount($booking['booking_id']);
+                ?>
+                <span class="badge bg-secondary"><?= $change_count ?> lần thay đổi</span>
+                
+                <?php if ($change_count > 0): ?>
+                    <?php
+                    $latest_history = BookingModel::getStatusHistory($booking['booking_id']);
+                    $latest_change = $latest_history[0] ?? null;
+                    ?>
+                    <?php if ($latest_change): ?>
+                        <div class="mt-2">
+                            <small class="text-muted">
+                                Lần cuối: <?= date('d/m/Y H:i', strtotime($latest_change['changed_at'])) ?><br>
+                                Bởi: <?= $latest_change['changed_by_name'] ?? 'System' ?>
+                            </small>
+                        </div>
+                    <?php endif; ?>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
 <?php require_once './views/admin/footer.php'; ?>

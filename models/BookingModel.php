@@ -149,6 +149,176 @@ public static function getAvailableDepartures() {
     $stmt->execute();
     return $stmt->fetchAll();
 }
+
+ // Cập nhật trạng thái booking với lịch sử
+    public static function updateStatus($booking_id, $new_status, $admin_id, $change_reason = '') {
+    $conn = connectDB();
+    
+    try {
+        $conn->beginTransaction();
+        
+        // Lấy trạng thái hiện tại
+        $current_status = self::getCurrentStatus($booking_id);
+        
+        // Cập nhật trạng thái mới trong bảng bookings
+        $update_query = "UPDATE bookings SET status = ? WHERE booking_id = ?";
+        $update_stmt = $conn->prepare($update_query);
+        $update_stmt->execute([$new_status, $booking_id]);
+        
+        // Ghi lại lịch sử
+        $history_query = "
+            INSERT INTO booking_status_history 
+            (booking_id, old_status, new_status, change_reason, changed_by) 
+            VALUES (?, ?, ?, ?, ?)
+        ";
+        $history_stmt = $conn->prepare($history_query);
+        $history_stmt->execute([
+            $booking_id,
+            $current_status,
+            $new_status,
+            $change_reason,
+            $admin_id
+        ]);
+        
+        $conn->commit();
+        return true;
+        
+    } catch (Exception $e) {
+        $conn->rollBack();
+        throw $e;
+    }
+}
+    
+    // Lấy trạng thái hiện tại của booking
+    public static function getCurrentStatus($booking_id) {
+        $conn = connectDB();
+        
+        $query = "SELECT status FROM bookings WHERE booking_id = ?";
+        $stmt = $conn->prepare($query);
+        $stmt->execute([$booking_id]);
+        $result = $stmt->fetch();
+        return $result ? $result['status'] : null;
+    }
+    
+    // Lấy lịch sử thay đổi trạng thái của booking
+    public static function getStatusHistory($booking_id) {
+        $conn = connectDB();
+        
+        $query = "
+            SELECT h.*, a.username as changed_by_name 
+            FROM booking_status_history h
+            LEFT JOIN admins a ON h.changed_by = a.admin_id
+            WHERE h.booking_id = ?
+            ORDER BY h.changed_at DESC
+        ";
+        $stmt = $conn->prepare($query);
+        $stmt->execute([$booking_id]);
+        return $stmt->fetchAll();
+    }
+    
+    // Lấy số lần thay đổi trạng thái
+    public static function getStatusChangeCount($booking_id) {
+        $conn = connectDB();
+        
+        $query = "
+            SELECT COUNT(*) as change_count 
+            FROM booking_status_history 
+            WHERE booking_id = ?
+        ";
+        $stmt = $conn->prepare($query);
+        $stmt->execute([$booking_id]);
+        $result = $stmt->fetch();
+        return $result['change_count'];
+    }
+    
+    // Lấy thống kê trạng thái
+    public static function getStatusStats() {
+        $conn = connectDB();
+        
+        $query = "
+            SELECT 
+                status,
+                COUNT(*) as count,
+                ROUND((COUNT(*) * 100.0 / (SELECT COUNT(*) FROM bookings)), 2) as percentage
+            FROM bookings 
+            GROUP BY status
+            ORDER BY count DESC
+        ";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll();
+    }
+    
+    // Lấy danh sách booking theo trạng thái
+    public static function getByStatus($status) {
+        $conn = connectDB();
+        
+        $query = "
+            SELECT b.*, t.tour_name, d.departure_date 
+            FROM bookings b
+            JOIN departure_schedules d ON b.departure_id = d.departure_id
+            JOIN tours t ON d.tour_id = t.tour_id
+            WHERE b.status = ?
+            ORDER BY b.booked_at DESC
+        ";
+        $stmt = $conn->prepare($query);
+        $stmt->execute([$status]);
+        return $stmt->fetchAll();
+    }
+    
+    // Kiểm tra xem booking có thể thay đổi trạng thái không
+    public static function canChangeStatus($booking_id, $new_status) {
+        $current_status = self::getCurrentStatus($booking_id);
+        
+        // Logic cho phép thay đổi trạng thái
+        $allowed_transitions = [
+            'pending' => ['deposited', 'confirmed', 'cancelled'],
+            'deposited' => ['confirmed', 'completed', 'cancelled'],
+            'confirmed' => ['completed', 'cancelled'],
+            'completed' => [], // Không thể thay đổi từ completed
+            'cancelled' => []  // Không thể thay đổi từ cancelled
+        ];
+        
+        return in_array($new_status, $allowed_transitions[$current_status] ?? []);
+    }
+    
+    // Lấy thông tin trạng thái chi tiết
+    public static function getStatusInfo($status) {
+        $status_info = [
+            'pending' => [
+                'name' => 'Chờ xác nhận', 
+                'color' => 'warning', 
+                'icon' => '⏳',
+                'description' => 'Booking đang chờ xác nhận từ quản trị viên'
+            ],
+            'deposited' => [
+                'name' => 'Đã cọc', 
+                'color' => 'info', 
+                'icon' => '💰',
+                'description' => 'Khách hàng đã đặt cọc'
+            ],
+            'confirmed' => [
+                'name' => 'Đã xác nhận', 
+                'color' => 'primary', 
+                'icon' => '✅',
+                'description' => 'Booking đã được xác nhận và sẵn sàng cho tour'
+            ],
+            'completed' => [
+                'name' => 'Hoàn tất', 
+                'color' => 'success', 
+                'icon' => '🎉',
+                'description' => 'Tour đã hoàn thành thành công'
+            ],
+            'cancelled' => [
+                'name' => 'Đã hủy', 
+                'color' => 'danger', 
+                'icon' => '❌',
+                'description' => 'Booking đã bị hủy'
+            ]
+        ];
+        
+        return $status_info[$status] ?? ['name' => $status, 'color' => 'secondary', 'icon' => '❓'];
+    }
 }
 
 // Model cho Booking Guests
@@ -227,6 +397,7 @@ class PaymentModel {
         $result = $stmt->fetch();
         return $result['total_paid'];
     }
+    
 }
 
 

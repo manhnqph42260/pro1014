@@ -116,24 +116,27 @@ require_once './views/admin/header.php';
                                 <td>
                                     <?php
                                     $status_badge = [
-                                        'pending' => 'warning',
-                                        'confirmed' => 'success', 
-                                        'cancelled' => 'danger',
-                                        'completed' => 'info'
+                                        'pending' => ['color' => 'warning', 'text' => '⏳ Chờ xác nhận'],
+                                        'deposited' => ['color' => 'info', 'text' => '💰 Đã cọc'],
+                                        'confirmed' => ['color' => 'primary', 'text' => '✅ Đã xác nhận'],
+                                        'completed' => ['color' => 'success', 'text' => '🎉 Hoàn tất'],
+                                        'cancelled' => ['color' => 'danger', 'text' => '❌ Đã hủy']
                                     ];
+                                    $status = $booking['status'] ?? 'pending';
                                     ?>
-                                    <span class="badge bg-<?= $status_badge[$booking['status']] ?>">
-                                        <?= $booking['status'] ?>
+                                    <span class="badge bg-<?= $status_badge[$status]['color'] ?>">
+                                        <?= $status_badge[$status]['text'] ?>
                                     </span>
                                 </td>
                                 <td>
                                     <a href="?act=admin_bookings_view&id=<?= $booking['booking_id'] ?>" class="btn btn-sm btn-info">
-                                        <i class="fas fa-eye"></i>
+                                        <i class="fas fa-eye">Chi tiết</i>
                                     </a>
                                     <a href="?act=admin_bookings_edit&id=<?= $booking['booking_id'] ?>" class="btn btn-sm btn-warning">
-                                        <i class="fas fa-edit"></i>
+                                        <i class="fas fa-edit">Cập nhật</i>
                                     </a>
                                 </td>
+                                
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
