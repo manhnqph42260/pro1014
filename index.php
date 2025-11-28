@@ -62,6 +62,10 @@ match ($act) {
     'admin_bookings_cancel' => (new BookingController())->adminCancel(),
     'admin_bookings_add_payment' => (new BookingController())->adminAddPayment(),
     'admin_bookings_delete_payment' => (new BookingController())->adminDeletePayment(),
+    'admin_bookings_update_status' => (new BookingController())->adminUpdateStatus(),
+    'api_booking_status' => (new BookingController())->apiGetStatusInfo(),
+    'admin_bookings_status_history' => (new BookingController())->adminStatusHistory(),
+
     
     default => (new ProductController())->Home()
 };

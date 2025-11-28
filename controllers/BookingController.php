@@ -353,5 +353,107 @@ class BookingController {
             exit();
         }
     }
+    public function adminUpdateStatus() {
+    $this->checkAdminAuth();
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    require_once './models/BookingModel.php';
+    
+    $booking_id = $_GET['id'] ?? 0;
+    $booking = BookingModel::getById($booking_id);
+    
+    if (!$booking) {
+        $_SESSION['error'] = "Booking không tồn tại!";
+        header("Location: ?act=admin_bookings");
+        exit();
+    }
+    
+    $status_history = BookingModel::getStatusHistory($booking_id);
+    $current_status = $booking['status'];
+    
+    if ($_POST) {
+        try {
+            $new_status = $_POST['new_status'];
+            $change_reason = $_POST['change_reason'] ?? '';
+            
+            // Validate trạng thái hợp lệ
+            $valid_statuses = ['pending', 'deposited', 'confirmed', 'completed', 'cancelled'];
+            if (!in_array($new_status, $valid_statuses)) {
+                throw new Exception("Trạng thái không hợp lệ!");
+            }
+            
+            // Kiểm tra có thể thay đổi trạng thái không
+            if (!BookingModel::canChangeStatus($booking_id, $new_status)) {
+                throw new Exception("Không thể thay đổi từ '{$current_status}' sang '{$new_status}'!");
+            }
+            
+            // SỬA: Thay đổi thứ tự tham số
+            BookingModel::updateStatus($booking_id, $new_status, $_SESSION['admin_id'], $change_reason);
+            
+            $_SESSION['success'] = "Cập nhật trạng thái booking thành công!";
+            header("Location: ?act=admin_bookings_view&id=" . $booking_id);
+            exit();
+            
+        } catch (Exception $e) {
+            $error = "Lỗi khi cập nhật trạng thái: " . $e->getMessage();
+        }
+    }
+    
+    require_once './views/admin/booking/update_status.php';
 }
+public function apiGetStatusInfo() {
+    $this->checkAdminAuth();
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    require_once './models/BookingModel.php';
+    
+    $booking_id = $_GET['booking_id'] ?? 0;
+    
+    header('Content-Type: application/json');
+    
+    try {
+        $booking = BookingModel::getById($booking_id);
+        if (!$booking) {
+            echo json_encode(['error' => 'Booking không tồn tại']);
+            exit();
+        }
+        
+        // SỬA: Dùng BookingModel thay vì StatusHistoryModel
+        $status_history = BookingModel::getStatusHistory($booking_id);
+        $change_count = BookingModel::getStatusChangeCount($booking_id);
+        
+        echo json_encode([
+            'success' => true,
+            'current_status' => $booking['status'],
+            'history' => $status_history,
+            'change_count' => $change_count
+        ]);
+        
+    } catch (Exception $e) {
+        echo json_encode(['error' => $e->getMessage()]);
+    }
+    exit();
+}
+// Xem lịch sử trạng thái
+public function adminStatusHistory() {
+    $this->checkAdminAuth();
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    require_once './models/BookingModel.php';
+    
+    $booking_id = $_GET['id'] ?? 0;
+    $booking = BookingModel::getById($booking_id);
+    
+    if (!$booking) {
+        $_SESSION['error'] = "Booking không tồn tại!";
+        header("Location: ?act=admin_bookings");
+        exit();
+    }
+    
+    $status_history = BookingModel::getStatusHistory($booking_id);
+    
+    require_once './views/admin/booking/status_history.php';
+}
+}
+
 ?>
