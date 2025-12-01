@@ -11,7 +11,8 @@ $controllers = [
     './controllers/AdminController.php', 
     './controllers/TourController.php',
     './controllers/DepartureController.php',
-     './controllers/BookingController.php'
+     './controllers/BookingController.php',
+      './controllers/GuideController.php'
 ];
 
 foreach ($controllers as $controller) {
@@ -65,6 +66,12 @@ match ($act) {
     'admin_bookings_update_status' => (new BookingController())->adminUpdateStatus(),
     'api_booking_status' => (new BookingController())->apiGetStatusInfo(),
     'admin_bookings_status_history' => (new BookingController())->adminStatusHistory(),
+    // Guide Management Routes
+    'admin_guides' => (new GuideController())->adminList(),
+    'admin_guides_create' => (new GuideController())->adminCreate(),
+    'admin_guides_edit' => (new GuideController())->adminEdit(),
+    'admin_guides_delete' => (new GuideController())->adminDelete(),
+    'admin_guides_view' => (new GuideController())->adminView(),
 
     
     default => (new ProductController())->Home()
