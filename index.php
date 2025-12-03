@@ -72,7 +72,11 @@ match ($act) {
     'admin_guides_edit' => (new GuideController())->adminEdit(),
     'admin_guides_delete' => (new GuideController())->adminDelete(),
     'admin_guides_view' => (new GuideController())->adminView(),
-
+    // Guide Category Management
+    'admin_guide_categories' => (new GuideController())->adminCategories(),
+    'admin_guide_category_create' => (new GuideController())->adminCategoryCreate(),
+    'admin_guide_category_edit' => (new GuideController())->adminCategoryEdit(),
+    'admin_guide_category_delete' => (new GuideController())->adminCategoryDelete(),
     
     default => (new ProductController())->Home()
 };

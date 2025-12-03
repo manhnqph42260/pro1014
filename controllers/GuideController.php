@@ -2,6 +2,134 @@
 require_once 'BaseController.php';
 
 class GuideController extends BaseController {
+    // Hiển thị danh sách categories
+public function adminCategories() {
+    $this->checkAdminAuth();
+    
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    $conn = connectDB();
+    
+    require_once './models/GuideCategoryModel.php';
+    $categoryModel = new GuideCategoryModel($conn);
+    
+    $categories = $categoryModel->getCategoryStats();
+    $categoryTypes = $categoryModel->getCategoryTypes();
+    
+    $this->renderView('./views/admin/guides/categories.php', [
+        'categories' => $categories,
+        'categoryTypes' => $categoryTypes
+    ]);
+}
+
+// Tạo category mới
+public function adminCategoryCreate() {
+    $this->checkAdminAuth();
+    
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    $conn = connectDB();
+    
+    require_once './models/GuideCategoryModel.php';
+    $categoryModel = new GuideCategoryModel($conn);
+    
+    $categoryTypes = $categoryModel->getCategoryTypes();
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        try {
+            $data = [
+                'category_name' => $_POST['category_name'],
+                'category_type' => $_POST['category_type'],
+                'description' => $_POST['description'] ?? '',
+                'color_code' => $_POST['color_code'] ?? '#6c757d',
+                'icon' => $_POST['icon'] ?? '',
+                'is_active' => isset($_POST['is_active']) ? 1 : 0
+            ];
+            
+            if ($categoryModel->createCategory($data)) {
+                $this->setFlash('success', 'Tạo nhóm HDV thành công!');
+                $this->redirect('?act=admin_guide_categories');
+            }
+        } catch (Exception $e) {
+            $this->setFlash('error', 'Lỗi: ' . $e->getMessage());
+        }
+    }
+    
+    $this->renderView('./views/admin/guides/category_create.php', [
+        'categoryTypes' => $categoryTypes
+    ]);
+}
+
+// Sửa category
+public function adminCategoryEdit() {
+    $this->checkAdminAuth();
+    
+    $category_id = $_GET['id'] ?? 0;
+    
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    $conn = connectDB();
+    
+    require_once './models/GuideCategoryModel.php';
+    $categoryModel = new GuideCategoryModel($conn);
+    
+    $category = $categoryModel->getCategoryById($category_id);
+    $categoryTypes = $categoryModel->getCategoryTypes();
+    
+    if (!$category) {
+        $this->setFlash('error', 'Nhóm HDV không tồn tại');
+        $this->redirect('?act=admin_guide_categories');
+    }
+    
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        try {
+            $data = [
+                'category_name' => $_POST['category_name'],
+                'category_type' => $_POST['category_type'],
+                'description' => $_POST['description'] ?? '',
+                'color_code' => $_POST['color_code'] ?? '#6c757d',
+                'icon' => $_POST['icon'] ?? '',
+                'is_active' => isset($_POST['is_active']) ? 1 : 0
+            ];
+            
+            if ($categoryModel->updateCategory($category_id, $data)) {
+                $this->setFlash('success', 'Cập nhật nhóm HDV thành công!');
+                $this->redirect('?act=admin_guide_categories');
+            }
+        } catch (Exception $e) {
+            $this->setFlash('error', 'Lỗi: ' . $e->getMessage());
+        }
+    }
+    
+    $this->renderView('./views/admin/guides/category_edit.php', [
+        'category' => $category,
+        'categoryTypes' => $categoryTypes
+    ]);
+}
+
+// Xóa category
+public function adminCategoryDelete() {
+    $this->checkAdminAuth();
+    
+    $category_id = $_GET['id'] ?? 0;
+    
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    $conn = connectDB();
+    
+    require_once './models/GuideCategoryModel.php';
+    $categoryModel = new GuideCategoryModel($conn);
+    
+    try {
+        $categoryModel->deleteCategory($category_id);
+        $this->setFlash('success', 'Xóa nhóm HDV thành công!');
+    } catch (Exception $e) {
+        $this->setFlash('error', 'Lỗi: ' . $e->getMessage());
+    }
+    
+    $this->redirect('?act=admin_guide_categories');
+}
+
     
     // Danh sách HDV
     public function adminList() {
@@ -256,14 +384,14 @@ class GuideController extends BaseController {
         $certifications_json = !empty($certifications) ? json_encode($certifications) : '[]';
         
         // INSERT GUIDE với id_number giới hạn độ dài
-        $query = "INSERT INTO guides (
+         $query = "INSERT INTO guides (
             guide_code, full_name, email, phone, id_number, date_of_birth, address, 
             emergency_contact, languages, skills, certifications, experience_years, 
-            status, rating, avatar_url
+            status, rating, avatar_url, category_id
         ) VALUES (
             :code, :name, :email, :phone, :id_number, :dob, :address, 
             :emergency_contact, :languages, :skills, :certifications, :experience, 
-            :status, :rating, :avatar_url
+            :status, :rating, :avatar_url, :category_id
         )";
         
         $stmt = $conn->prepare($query);
@@ -292,7 +420,8 @@ class GuideController extends BaseController {
             'experience' => $_POST['experience_years'] ?? 0,
             'status' => $_POST['status'] ?? 'active',
             'rating' => $_POST['rating'] ?? 0,
-            'avatar_url' => $avatar_url
+            'avatar_url' => $avatar_url,
+            'category_id' => !empty($_POST['category_id']) ? $_POST['category_id'] : null,
         ]);
         
         if (!$result) {
@@ -319,6 +448,7 @@ class GuideController extends BaseController {
         $this->setFlash('error', "Lỗi: " . $e->getMessage());
         $this->renderView('./views/admin/guides/create.php', ['form_data' => $_POST]);
     }
+    
 }
     
     private function handleUpdateGuide($guide_id) {
@@ -383,23 +513,29 @@ class GuideController extends BaseController {
             }
             
             // UPDATE GUIDE
-            $query = "UPDATE guides SET
-                guide_code = :code,
-                full_name = :name,
-                email = :email,
-                phone = :phone,
-                id_number = :id_number,
-                date_of_birth = :dob,
-                address = :address,
-                emergency_contact = :emergency_contact,
-                languages = :languages,
-                skills = :skills,
-                certifications = :certifications,
-                experience_years = :experience,
-                status = :status,
-                rating = :rating
-                {$avatar_update}
-            WHERE guide_id = :id";
+ $query = "UPDATE guides SET
+            guide_code = :code,
+            full_name = :name,
+            email = :email,
+            phone = :phone,
+            id_number = :id_number,
+            date_of_birth = :dob,
+            address = :address,
+            emergency_contact = :emergency_contact,
+            languages = :languages,
+            skills = :skills,
+            certifications = :certifications,
+            experience_years = :experience,
+            status = :status,
+            rating = :rating,
+            category_id = :category_id
+            {$avatar_update}
+        WHERE guide_id = :id";
+        
+        echo "<div style='background: #fff3cd; padding: 15px; margin: 15px; border: 1px solid #ffc107;'>";
+        echo "<h4>🔍 DEBUG SQL UPDATE</h4>";
+        echo "<p>SQL Query:</p>";
+        echo "<pre>" . htmlspecialchars($query) . "</pre>";
             
             $stmt = $conn->prepare($query);
             
@@ -418,6 +554,7 @@ class GuideController extends BaseController {
                 'experience' => $_POST['experience_years'] ?? 0,
                 'status' => $_POST['status'] ?? 'active',
                 'rating' => $_POST['rating'] ?? 0,
+                'category_id' => !empty($_POST['category_id']) ? $_POST['category_id'] : null,
                 'id' => $guide_id
             ];
             

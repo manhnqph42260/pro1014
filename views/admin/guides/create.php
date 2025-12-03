@@ -88,7 +88,47 @@
                             <input type="number" class="form-control" id="rating" name="rating" 
                                    min="0" max="5" step="0.1" value="<?= $_POST['rating'] ?? 0 ?>">
                         </div>
-                        
+                        <div class="form-group">
+    <label for="category_id">Nhóm HDV</label>
+    <select class="form-control" id="category_id" name="category_id">
+        <option value="">-- Chọn nhóm HDV --</option>
+        <?php
+        // Lấy danh sách categories
+        require_once './commons/env.php';
+        require_once './commons/function.php';
+        $conn = connectDB();
+        
+        $stmt = $conn->query("SELECT category_id, category_name, category_type FROM guide_categories WHERE is_active = 1 ORDER BY category_type, category_name");
+        $categories = $stmt->fetchAll();
+        
+        $currentCategory = $guide['category_id'] ?? ($_POST['category_id'] ?? '');
+        
+        $groupedCategories = [];
+        foreach ($categories as $cat) {
+            $groupedCategories[$cat['category_type']][] = $cat;
+        }
+        
+        $categoryTypes = [
+            'location' => '📍 Theo địa điểm',
+            'specialization' => '⭐ Theo chuyên môn',
+            'client_type' => '👥 Theo loại khách'
+        ];
+        
+        foreach ($categoryTypes as $typeKey => $typeLabel) {
+            if (!empty($groupedCategories[$typeKey])) {
+                echo '<optgroup label="' . htmlspecialchars($typeLabel) . '">';
+                foreach ($groupedCategories[$typeKey] as $cat) {
+                    $selected = ($currentCategory == $cat['category_id']) ? 'selected' : '';
+                    echo '<option value="' . $cat['category_id'] . '" ' . $selected . '>' . 
+                         htmlspecialchars($cat['category_name']) . '</option>';
+                }
+                echo '</optgroup>';
+            }
+        }
+        ?>
+    </select>
+    <small class="form-text text-muted">Phân loại HDV theo nhóm để dễ quản lý</small>
+</div>
                         <!-- Languages -->
                         <div class="form-group">
                             <label>Ngôn ngữ</label>

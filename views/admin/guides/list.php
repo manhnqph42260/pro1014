@@ -50,6 +50,7 @@
                             <th>Kinh nghiệm</th>
                             <th>Đánh giá</th>
                             <th>Trạng thái</th>
+                            <th>Nhóm</th>
                             <th>Hành động</th>
                         </tr>
                     </thead>
@@ -90,6 +91,28 @@
                                 </span>
                                 
                             </td>
+                            <td>
+    <?php
+    // Lấy category info
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    $conn = connectDB();
+    
+    if (!empty($guide['category_id'])) {
+        $stmt = $conn->prepare("SELECT category_name, color_code FROM guide_categories WHERE category_id = ?");
+        $stmt->execute([$guide['category_id']]);
+        $category = $stmt->fetch();
+        
+        if ($category) {
+            echo '<span class="badge" style="background-color: ' . $category['color_code'] . '; color: white;">';
+            echo htmlspecialchars($category['category_name']);
+            echo '</span>';
+        }
+    } else {
+        echo '<span class="badge badge-secondary">Chưa phân nhóm</span>';
+    }
+    ?>
+</td>
                             <td>
                                 <div class="btn-group" role="group">
                                     <a href="?act=admin_guides_view&id=<?= $guide['guide_id'] ?>" 
