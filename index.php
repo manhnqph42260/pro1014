@@ -54,6 +54,17 @@ match ($act) {
     'admin_departures_create' => (new DepartureController())->adminCreate(),
      'admin_departures_delete' => (new DepartureController())->adminDelete(),
      'admin_departures_edit' => (new DepartureController())->adminEdit(),
+        // Departure Detail & Assignment
+    'admin_departure_detail' => (new DepartureController())->adminDetail(),
+    'admin_departure_add_assignment' => (new DepartureController())->adminAddAssignment(),
+    'admin_departure_add_resource' => (new DepartureController())->adminAddResource(),
+    'admin_departure_delete_assignment' => (new DepartureController())->adminDeleteAssignment(),
+    'admin_departure_delete_resource' => (new DepartureController())->adminDeleteResource(),
+    'admin_departure_update_assignment_status' => (new DepartureController())->adminUpdateAssignmentStatus(),
+    'admin_departure_update_resource_status' => (new DepartureController())->adminUpdateResourceStatus(),
+    'admin_add_checklist' => (new DepartureController())->adminAddChecklist(),
+'admin_update_checklist_status' => (new DepartureController())->adminUpdateChecklistStatus(),
+'admin_delete_checklist' => (new DepartureController())->adminDeleteChecklist(),
      // Booking Management - Admin
     'admin_bookings' => (new BookingController())->adminList(),
     'admin_bookings_create' => (new BookingController())->adminCreate(),
