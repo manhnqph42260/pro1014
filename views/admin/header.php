@@ -9,6 +9,13 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+<!-- jQuery với noConflict -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+// Sử dụng jQuery noConflict nếu cần
+var $j = jQuery.noConflict();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom CSS -->
     <style>
         .sidebar {
