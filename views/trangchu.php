@@ -6,7 +6,10 @@
     <title>Document</title>
 </head>
 <body>
-    <h1><?php echo $title; ?></h1>
-    <h2><?php echo $thoiTiet; ?></h2>
+  <?php
+// views/trangchu.php - THÊM ĐẦU FILE
+$title = $title ?? 'Trang chủ Tour';
+$thoiTiet = $thoiTiet ?? 'Thông tin thời tiết';
+?>
 </body>
 </html>
