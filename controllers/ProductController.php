@@ -37,6 +37,22 @@ class ProductController {
         echo '🚀 Truy cập trang Quản trị';
         echo '</a>';
         echo '</div>';
+
     }
+
+      
+    // THÊM METHOD XỬ LÝ HDV
+    public function admin_guides() {
+        // Hiển thị trang quản lý HDV hoặc chuyển hướng đến trang login HDV
+        header('Location: index.php?act=guide_login');
+        exit();
+    }
+    
+    // THÊM METHOD XỬ LÝ TRANG LOGIN HDV
+    public function guide_login() {
+        // Hiển thị trang đăng nhập HDV
+        require_once './views/admin/guides/guide_login.php';
+    }
+
 }
 ?>
