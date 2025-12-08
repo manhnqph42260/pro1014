@@ -11,8 +11,9 @@ $controllers = [
     './controllers/AdminController.php', 
     './controllers/TourController.php',
     './controllers/DepartureController.php',
-     './controllers/BookingController.php',
-      './controllers/GuideController.php'
+    './controllers/BookingController.php',
+    './controllers/GuideController.php',
+    './controllers/GuestController.php'
 ];
 
 foreach ($controllers as $controller) {
@@ -88,7 +89,23 @@ match ($act) {
     'admin_guide_category_create' => (new GuideController())->adminCategoryCreate(),
     'admin_guide_category_edit' => (new GuideController())->adminCategoryEdit(),
     'admin_guide_category_delete' => (new GuideController())->adminCategoryDelete(),
+// Guest Management Routes
+'admin_guest_management' => (new GuestController())->adminGuestManagement(),
+'ajax_get_departures' => (new GuestController())->ajaxGetDepartures(),
+'admin_guest_detail' => (new GuestController())->adminGuestDetail(),
+'ajax_get_guest_info' => (new GuestController())->ajaxGetGuestInfo(),
+'updateGuestInfo' => (new GuestController())->updateGuestInfo(),
+'updateCheckStatus' => (new GuestController())->updateCheckStatus(),
+'assignRoom' => (new GuestController())->assignRoom(),
+'showGuestList' => (new GuestController())->showGuestList(),
+'showRoomList' => (new GuestController())->showRoomList(),
+'returnRoom' => (new GuestController())->returnRoom(),
+
     
+    // Room Management Routes
+    'delete_room' => (new GuestController())->deleteRoom(),
+    'edit_room' => (new GuestController())->editRoom(),
+    'print_special_notes' => (new GuestController())->printSpecialNotes(),
     default => (new ProductController())->Home()
 };
 ?>
