@@ -3,7 +3,7 @@
 // Biến môi trường, dùng chung toàn hệ thống
 // Khai báo dưới dạng HẰNG SỐ để không phải dùng $GLOBALS
 
-define('BASE_URL'       , 'http://localhost/tour_management');
+define('BASE_URL'       , 'http://localhost/du_an1/'); // Đường dẫn gốc của dự án
 
 define('DB_HOST'    , 'localhost');
 define('DB_PORT'    , 3306);

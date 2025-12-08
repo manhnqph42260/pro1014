@@ -1,3 +1,30 @@
+<?php
+// Khởi tạo session một lần duy nhất
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Nếu form được submit
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $username = trim($_POST['username']);
+    $password = trim($_POST['password']);
+
+    // Ví dụ kiểm tra tạm thời (sau này thay bằng kiểm tra DB)
+    if ($username === 'admin' && $password === '123456') {
+        $_SESSION['role'] = 'admin';
+        $_SESSION['full_name'] = 'Quản trị viên';
+        header("Location: index.php?act=admin_dashboard"); // dùng route
+        exit();
+    } elseif ($username === 'hdv' && $password === '123456') {
+        $_SESSION['role'] = 'hdv';
+        $_SESSION['full_name'] = 'Hướng dẫn viên';
+        header("Location: index.php?act=guide_dashboard"); // dùng route
+        exit();
+    } else {
+        $error = "Tên đăng nhập hoặc mật khẩu không đúng!";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -26,57 +53,16 @@
             max-width: 400px;
         }
         .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        .login-header i {
-            font-size: 3rem;
-            color: #667eea;
-            margin-bottom: 1rem;
-        }
-        .form-group {
-            margin-bottom: 1rem;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 0.5rem;
-            font-weight: bold;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            font-size: 14px;
-        }
-        .btn-login {
-            width: 100%;
-            padding: 12px;
-            background: #667eea;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-        }
-        .login-box {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-        }
-        .login-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             border-radius: 15px 15px 0 0;
             padding: 2rem;
             color: white;
             text-align: center;
+        }
+        .login-header i {
+            font-size: 3rem;
+            color: #fff;
+            margin-bottom: 1rem;
         }
     </style>
 </head>
@@ -87,8 +73,8 @@
                 <div class="login-box">
                     <div class="login-header">
                         <i class="bi bi-mountains display-4 mb-3"></i>
-                        <h2 class="h4 mb-0">Đăng nhập Quản trị</h2>
-                        <p class="mb-0 opacity-75">Hệ thống quản lý Tour du lịch</p>
+                        <h2 class="h4 mb-0">Đăng nhập hệ thống</h2>
+                        
                     </div>
                     
                     <div class="p-4">
@@ -107,7 +93,7 @@
                                         <i class="bi bi-person"></i>
                                     </span>
                                     <input type="text" name="username" class="form-control" required 
-                                           placeholder="Nhập username">
+                                           placeholder="Nhập username (admin hoặc hdv)">
                                 </div>
                             </div>
                             
@@ -118,7 +104,7 @@
                                         <i class="bi bi-lock"></i>
                                     </span>
                                     <input type="password" name="password" class="form-control" required 
-                                           placeholder="Nhập mật khẩu">
+                                           placeholder="Nhập mật khẩu ">
                                 </div>
                             </div>
                             

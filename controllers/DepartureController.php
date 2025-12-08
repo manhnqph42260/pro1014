@@ -389,7 +389,7 @@ public function adminDeleteChecklist() {
         
         if ($_POST) {
             try {
-                $data = [
+                $data = [   
                     'tour_id' => $_POST['tour_id'],
                     'departure_date' => $_POST['departure_date'],
                     'departure_time' => $_POST['departure_time'],
