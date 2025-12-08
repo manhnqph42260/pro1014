@@ -254,12 +254,24 @@ $page_title = "Quản lý Lịch khởi hành";
                                             ?>
                                         </span>
                                     </td>
-                                    <td>
-                                        <a href="?act=admin_departures_edit&id=<?php echo $departure['departure_id']; ?>">📅 Sửa Lịch trình</a> | 
-                                        <a href="?act=admin_tours_itinerary&tour_id=<?php echo $departure['tour_id']; ?>"> Lịch trình</a> | 
-                                        <a href="?act=admin_departures_delete&id=<?php echo $departure['departure_id']; ?>" 
-                                           onclick="return confirm('Xóa lịch khởi hành này?')">Xóa</a>
-                                    </td>
+                                    <!-- Thêm cột Hành động với link detail -->
+<td>
+    <div class="btn-group btn-group-sm" role="group">
+        <a href="?act=admin_departure_detail&id=<?= $departure['departure_id'] ?>" 
+           class="btn btn-info" title="Xem chi tiết & Phân bổ">
+            <i class="fas fa-eye">Chi tiết</i>
+        </a>
+        <a href="?act=admin_departures_edit&id=<?= $departure['departure_id'] ?>" 
+           class="btn btn-warning" title="Sửa">
+            <i class="fas fa-edit">Sửa</i>
+        </a>
+        <a href="?act=admin_departures_delete&id=<?= $departure['departure_id'] ?>" 
+           class="btn btn-danger" title="Xóa"
+           onclick="return confirm('Xóa lịch khởi hành này?')">
+            <i class="fas fa-trash">Xóa</i>
+        </a>
+    </div>
+</td>
                                 </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>
