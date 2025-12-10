@@ -137,7 +137,7 @@ date_default_timezone_set('Asia/Ho_Chi_Minh');
                             </a>
                         </li>
                         <li class="nav-item mt-5">
-                            <a class="nav-link text-danger" href="index.php?act=guide_logout">
+                            <a class="nav-link text-danger" href="?act=logout">
                                 <i class="bi bi-box-arrow-right"></i> Đăng xuất
                             </a>
                         </li>
