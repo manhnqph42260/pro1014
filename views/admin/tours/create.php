@@ -1,6 +1,6 @@
 <?php
 $page_title = "Tạo Tour mới";
-require_once '../header.php';
+require_once './views/admin/header.php';
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
@@ -28,18 +28,20 @@ require_once '../header.php';
         <div class="card border-0 shadow-sm">
             <div class="card-body">
                 <form method="POST" enctype="multipart/form-data">
-                    <div class="row g-4">
-                        <!-- Thông tin cơ bản -->
-                        <div class="col-md-6">
-                            <h5 class="mb-3 text-primary">
-                                <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
-                            </h5>
-                            
-                            <div class="mb-3">
-                                <label class="form-label">Mã Tour <span class="text-danger">*</span></label>
-                                <input type="text" name="tour_code" class="form-control" required 
-                                       placeholder="VD: TOUR001" value="<?php echo $_POST['tour_code'] ?? ''; ?>">
-                            </div>
+                    <!-- Step 1: Thông tin cơ bản -->
+                    <div class="form-step" id="step1">
+                        <div class="row g-4">
+                            <!-- Thông tin cơ bản -->
+                            <div class="col-md-6">
+                                <h5 class="mb-3 text-primary">
+                                    <i class="bi bi-info-circle me-2"></i>Thông tin cơ bản
+                                </h5>
+                                
+                                <div class="mb-3">
+                                    <label class="form-label">Mã Tour <span class="text-danger">*</span></label>
+                                    <input type="text" name="tour_code" class="form-control" required 
+                                           placeholder="VD: TOUR001" value="<?php echo $_POST['tour_code'] ?? ''; ?>">
+                                </div>
 
                                 <div class="mb-3">
                                     <label class="form-label">Tên Tour <span class="text-danger">*</span></label>
@@ -47,9 +49,7 @@ require_once '../header.php';
                                            placeholder="Tên tour du lịch" id="tourName" value="<?php echo $_POST['tour_name'] ?? ''; ?>">
                                     <div class="form-text">Có thể chỉnh sửa tên tour nếu cần</div>
                                 </div>
-                            </div>
 
-                            <div class="col-md-6">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="mb-3">
@@ -68,7 +68,9 @@ require_once '../header.php';
                                         </div>
                                     </div>
                                 </div>
+                            </div>
 
+                            <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Ngày khởi hành <span class="text-danger">*</span></label>
                                     <input type="date" name="departure_date" class="form-control" required 
@@ -77,40 +79,45 @@ require_once '../header.php';
                                     <div class="form-text">Chọn ngày bắt đầu tour</div>
                                 </div>
 
-                            <div class="mb-3">
-                                <label class="form-label">Điểm đến <span class="text-danger">*</span></label>
-                                <input type="text" name="destination" class="form-control" required 
-                                       placeholder="VD: Sapa, Lào Cai" value="<?php echo $_POST['destination'] ?? ''; ?>">
-                            </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Điểm đến <span class="text-danger">*</span></label>
+                                    <input type="text" name="destination" class="form-control" required 
+                                           placeholder="VD: Sapa, Lào Cai" value="<?php echo $_POST['destination'] ?? ''; ?>">
+                                </div>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Số ngày <span class="text-danger">*</span></label>
-                                        <input type="number" name="duration_days" class="form-control" required 
-                                               min="1" value="<?php echo $_POST['duration_days'] ?? 1; ?>">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Số ngày <span class="text-danger">*</span></label>
+                                            <input type="number" name="duration_days" class="form-control" required 
+                                                   min="1" value="<?php echo $_POST['duration_days'] ?? 1; ?>">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label class="form-label">Số chỗ tối đa</label>
+                                            <input type="number" name="max_participants" class="form-control" 
+                                                   value="<?php echo $_POST['max_participants'] ?? 20; ?>">
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Số chỗ tối đa</label>
-                                        <input type="number" name="max_participants" class="form-control" 
-                                               value="<?php echo $_POST['max_participants'] ?? 20; ?>">
-                                    </div>
+                            </div>
+
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Mô tả tour</label>
+                                    <textarea name="description" class="form-control" rows="4" 
+                                              placeholder="Mô tả về tour, điểm nổi bật, trải nghiệm..." id="descriptionTextarea"><?php echo $_POST['description'] ?? ''; ?></textarea>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="mb-3">
-                            <label class="form-label">Mô tả tour</label>
-                            <textarea name="description" class="form-control" rows="4" 
-                                      placeholder="Mô tả về tour, điểm nổi bật, trải nghiệm..." id="descriptionTextarea"><?php echo $_POST['description'] ?? ''; ?></textarea>
-                        </div>
-
-                        <div class="mb-3">
-                            <label class="form-label">Lộ trình tổng quan</label>
-                            <textarea name="route" class="form-control" rows="3" 
-                                      placeholder="Mô tả lộ trình tour..." id="routeTextarea"><?php echo $_POST['route'] ?? ''; ?></textarea>
+                            <div class="col-12">
+                                <div class="mb-3">
+                                    <label class="form-label">Lộ trình tổng quan</label>
+                                    <textarea name="route" class="form-control" rows="3" 
+                                              placeholder="Mô tả lộ trình tour..." id="routeTextarea"><?php echo $_POST['route'] ?? ''; ?></textarea>
+                                </div>
+                            </div>
                         </div>
 
                         <div class="d-flex justify-content-between mt-4">
@@ -122,7 +129,7 @@ require_once '../header.php';
                     </div>
 
                     <!-- Step 2: Lịch trình chi tiết -->
-                    <div class="form-step" id="step2">
+                    <div class="form-step" id="step2" style="display: none;">
                         <h5 class="mb-4 text-primary">
                             <i class="bi bi-calendar-week me-2"></i>Lịch trình chi tiết
                         </h5>
@@ -151,7 +158,7 @@ require_once '../header.php';
                     </div>
 
                     <!-- Step 3: Hình ảnh -->
-                    <div class="form-step" id="step3">
+                    <div class="form-step" id="step3" style="display: none;">
                         <h5 class="mb-4 text-primary">
                             <i class="bi bi-images me-2"></i>Hình ảnh tour
                         </h5>
@@ -194,82 +201,54 @@ require_once '../header.php';
                     </div>
 
                     <!-- Step 4: Giá & Chính sách -->
-                    <div class="form-step" id="step4">
+                    <div class="form-step" id="step4" style="display: none;">
                         <h5 class="mb-4 text-primary">
                             <i class="bi bi-currency-dollar me-2"></i>Giá & Chính sách
                         </h5>
 
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Giá người lớn <span class="text-danger">*</span></label>
-                                        <div class="input-group">
-                                            <input type="number" name="price_adult" class="form-control" required 
-                                                   value="<?php echo $_POST['price_adult'] ?? ''; ?>">
-                                            <span class="input-group-text">₫</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="mb-3">
-                                        <label class="form-label">Giá trẻ em</label>
-                                        <div class="input-group">
-                                            <input type="number" name="price_child" class="form-control" 
-                                                   value="<?php echo $_POST['price_child'] ?? ''; ?>">
-                                            <span class="input-group-text">₫</span>
-                                        </div>
-                                        <div class="form-text">Giá mặc định: 400,000₫/trẻ em</div>
-                                    </div>
-                                    <div class="p-2 bg-white rounded border">
-                                        <small class="text-muted"><strong>Tổng giá dự kiến:</strong> <span id="totalPrice">0</span> ₫</small>
-                                    </div>
-                                </div>
-
-                                <div class="mb-3">
-                                    <h6>Chính sách hủy tour</h6>
-                                    <textarea name="cancellation_policy" class="form-control" rows="3" 
-                                              placeholder="Chính sách hủy tour, hoàn tiền..."><?php echo $_POST['cancellation_policy'] ?? 'Hủy trước 7 ngày: hoàn 100%
-Hủy trước 3-7 ngày: hoàn 50%
-Hủy dưới 3 ngày: không hoàn tiền'; ?></textarea>
-                                </div>
-                            </div>
-
+                        <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <h6>Điều khoản & Điều kiện</h6>
-                                    <textarea name="terms_conditions" class="form-control" rows="5" 
-                                              placeholder="Các điều khoản và điều kiện của tour..."><?php echo $_POST['terms_conditions'] ?? '1. Khách hàng cần mang theo CMND/Passport
-2. Trẻ em cần có giấy khai sinh bản sao
-3. Không hoàn tiền cho các dịch vụ không sử dụng
-4. Công ty có quyền thay đổi lịch trình nếu cần thiết'; ?></textarea>
+                                    <label class="form-label">Giá người lớn <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="number" name="price_adult" class="form-control" required 
+                                               value="<?php echo $_POST['price_adult'] ?? ''; ?>" id="priceAdult">
+                                        <span class="input-group-text">₫</span>
+                                    </div>
                                 </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Trạng thái</label>
-                                <select name="status" class="form-select">
-                                    <option value="draft">Bản nháp</option>
-                                    <option value="published">Đã xuất bản</option>
-                                </select>
                             </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Ảnh đại diện</label>
-                                <input type="file" name="featured_image" class="form-control" accept="image/*">
-                                <div class="form-text">Chọn ảnh đại diện cho tour</div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Giá trẻ em</label>
+                                    <div class="input-group">
+                                        <input type="number" name="price_child" class="form-control" 
+                                               value="<?php echo $_POST['price_child'] ?? '400000'; ?>" id="priceChild">
+                                        <span class="input-group-text">₫</span>
+                                    </div>
+                                    <div class="form-text">Giá mặc định: 400,000₫/trẻ em</div>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Mô tả -->
-                        <div class="col-12">
-                            <h5 class="mb-3 text-primary">
-                                <i class="bi bi-text-paragraph me-2"></i>Mô tả tour
-                            </h5>
-                            <div class="mb-3">
-                                <label class="form-label">Mô tả chi tiết</label>
-                                <textarea name="description" class="form-control" rows="4" 
-                                          placeholder="Mô tả về tour, điểm nổi bật, trải nghiệm..."><?php echo $_POST['description'] ?? ''; ?></textarea>
-                            </div>
-                            <?php endforeach; ?>
+                        <div class="p-2 bg-white rounded border mb-4">
+                            <small class="text-muted"><strong>Tổng giá dự kiến:</strong> <span id="totalPrice">0</span> ₫</small>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Chính sách hủy tour</h6>
+                            <textarea name="cancellation_policy" class="form-control" rows="3" 
+                                      placeholder="Chính sách hủy tour, hoàn tiền..."><?php echo $_POST['cancellation_policy'] ?? 'Hủy trước 7 ngày: hoàn 100%
+Hủy trước 3-7 ngày: hoàn 50%
+Hủy dưới 3 ngày: không hoàn tiền'; ?></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6>Điều khoản & Điều kiện</h6>
+                            <textarea name="terms_conditions" class="form-control" rows="5" 
+                                      placeholder="Các điều khoản và điều kiện của tour..."><?php echo $_POST['terms_conditions'] ?? '1. Khách hàng cần mang theo CMND/Passport
+2. Trẻ em cần có giấy khai sinh bản sao
+3. Không hoàn tiền cho các dịch vụ không sử dụng
+4. Công ty có quyền thay đổi lịch trình nếu cần thiết'; ?></textarea>
                         </div>
 
                         <div class="mb-3">
@@ -278,21 +257,16 @@ Hủy dưới 3 ngày: không hoàn tiền'; ?></textarea>
                                       placeholder="Ghi chú về nhà cung cấp, hợp đồng..."><?php echo $_POST['supplier_notes'] ?? ''; ?></textarea>
                         </div>
 
-                        <!-- Tuyến đường -->
-                        <div class="col-12">
-                            <h5 class="mb-3 text-primary">
-                                <i class="bi bi-geo-alt me-2"></i>Tuyến đường
-                            </h5>
-                            <div class="mb-3">
-                                <label class="form-label">Lộ trình</label>
-                                <textarea name="route" class="form-control" rows="3" 
-                                          placeholder="Mô tả lộ trình tour..."><?php echo $_POST['route'] ?? ''; ?></textarea>
-                            </div>
+                        <div class="mb-4">
+                            <label class="form-label">Trạng thái</label>
+                            <select name="status" class="form-select">
+                                <option value="draft" selected>Bản nháp</option>
+                                <option value="published">Đã xuất bản</option>
+                            </select>
                         </div>
-                    </div>
 
                         <div class="d-flex justify-content-between mt-4">
-                            <button type="button" class="btn btn-outline-secondary prev-step" data-prev="4">
+                            <button type="button" class="btn btn-outline-secondary prev-step" data-prev="3">
                                 <i class="bi bi-arrow-left me-1"></i>Quay lại
                             </button>
                             <div>
@@ -311,4 +285,65 @@ Hủy dưới 3 ngày: không hoàn tiền'; ?></textarea>
     </div>
 </div>
 
-<?php require_once '../footer.php'; ?>
+<script>
+// JavaScript để xử lý multi-step form
+document.addEventListener('DOMContentLoaded', function() {
+    // Hiển thị step đầu tiên
+    showStep(1);
+    
+    // Xử lý nút next
+    document.querySelectorAll('.next-step').forEach(button => {
+        button.addEventListener('click', function() {
+            const nextStep = this.getAttribute('data-next');
+            showStep(nextStep);
+        });
+    });
+    
+    // Xử lý nút prev
+    document.querySelectorAll('.prev-step').forEach(button => {
+        button.addEventListener('click', function() {
+            const prevStep = this.getAttribute('data-prev');
+            showStep(prevStep);
+        });
+    });
+    
+    // Tính toán tổng giá
+    function calculateTotalPrice() {
+        const adultCount = parseInt(document.getElementById('adultCount').value) || 0;
+        const childCount = parseInt(document.getElementById('childCount').value) || 0;
+        const adultPrice = parseInt(document.getElementById('priceAdult').value) || 0;
+        const childPrice = parseInt(document.getElementById('priceChild').value) || 0;
+        
+        const total = (adultCount * adultPrice) + (childCount * childPrice);
+        document.getElementById('totalPrice').textContent = total.toLocaleString('vi-VN');
+    }
+    
+    // Gắn sự kiện cho các input giá và số lượng
+    ['adultCount', 'childCount', 'priceAdult', 'priceChild'].forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.addEventListener('input', calculateTotalPrice);
+        }
+    });
+    
+    // Tính toán ban đầu
+    calculateTotalPrice();
+});
+
+function showStep(stepNumber) {
+    // Ẩn tất cả các step
+    document.querySelectorAll('.form-step').forEach(step => {
+        step.style.display = 'none';
+    });
+    
+    // Hiển thị step được chọn
+    const stepToShow = document.getElementById('step' + stepNumber);
+    if (stepToShow) {
+        stepToShow.style.display = 'block';
+    }
+}
+</script>
+
+<?php
+ require_once './views/admin/footer.php';
+ ?>
