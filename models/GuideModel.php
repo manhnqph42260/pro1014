@@ -10,7 +10,7 @@ class GuideModel
 
     public function checkLogin($username, $password)
     {
-        $sql = "SELECT * FROM guides WHERE username = :u AND status = 'active'";
+        $sql = "SELECT * FROM guides WHERE (username = :u OR guide_code = :u) AND status = 'active'";
         $stmt = $this->conn->prepare($sql);
         $stmt->execute([':u' => $username]);
         $user = $stmt->fetch();
