@@ -83,10 +83,10 @@ require_once 'header.php';
                         <a href="?act=admin_tours" class="btn btn-outline-primary px-4">
                             <i class="bi bi-list-ul me-1"></i>Quản lý Tour
                         </a>
-                        <a href="#" class="btn btn-outline-secondary px-4">
+                        <a href="?act=admin_departures_create" class="btn btn-outline-secondary px-4">
                             <i class="bi bi-calendar-plus me-1"></i>Tạo lịch trình
                         </a>
-                        <a href="#" class="btn btn-outline-success px-4">
+                        <a href="?act=admin_guides_create" class="btn btn-outline-success px-4">
                             <i class="bi bi-person-plus me-1"></i>Thêm HDV
                         </a>
                         <a href="#" class="btn btn-outline-info px-4">
