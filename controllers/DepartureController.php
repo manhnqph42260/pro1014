@@ -314,7 +314,7 @@ public function adminAddChecklist() {
     }
     
     // Lấy danh sách admin để assign
-    $admins = $conn->query("SELECT admin_id, full_name, username FROM admins WHERE status = 'active'")->fetchAll();
+    $admins = $conn->query("SELECT admin_id, full_name, username FROM admins")->fetchAll();
     
     require_once './views/admin/departures/add_checklist.php';
 }
@@ -385,7 +385,7 @@ public function adminDeleteChecklist() {
         $this->checkAdminAuth();
         
         $conn = connectDB();
-        $tours = $conn->query("SELECT tour_id, tour_code, tour_name FROM tours WHERE status = 'published'")->fetchAll();
+        $tours = $conn->query("SELECT tour_id, tour_code, tour_name FROM tours")->fetchAll();
         
         if ($_POST) {
             try {
@@ -439,7 +439,7 @@ public function adminDeleteChecklist() {
         
         $conn = connectDB();
         // Lấy danh sách tour để chọn
-        $tours = $conn->query("SELECT tour_id, tour_code, tour_name FROM tours WHERE status = 'published'")->fetchAll();
+        $tours = $conn->query("SELECT tour_id, tour_code, tour_name FROM tours")->fetchAll();
         
         if ($_POST) {
             try {

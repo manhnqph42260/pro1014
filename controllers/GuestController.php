@@ -15,7 +15,7 @@ class GuestController {
         $this->checkAdminAuth();
         
         // Lấy danh sách tour
-        $tours = $this->conn->query("SELECT tour_id, tour_code, tour_name FROM tours WHERE status = 'published' ORDER BY tour_name")->fetchAll();
+        $tours = $this->conn->query("SELECT tour_id, tour_code, tour_name FROM tours ORDER BY tour_name")->fetchAll();
         
         $tour_id = $_GET['tour_id'] ?? 0;
         $departure_id = $_GET['departure_id'] ?? 0;
