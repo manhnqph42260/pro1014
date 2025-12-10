@@ -73,12 +73,17 @@ match ($act) {
     
     // Booking Management - Admin
     'admin_bookings' => (new BookingController())->adminList(),
+    'admin_bookings_create' => (new BookingController())->adminCreate(),
     'admin_bookings_view' => (new BookingController())->adminView(),
+    'admin_bookings_edit' => (new BookingController())->adminEdit(),
     'admin_bookings_confirm' => (new BookingController())->adminConfirm(),
     'admin_bookings_cancel' => (new BookingController())->adminCancel(),
+    'admin_bookings_add_payment' => (new BookingController())->adminAddPayment(),
+    'admin_bookings_delete_payment' => (new BookingController())->adminDeletePayment(),
     'admin_bookings_update_status' => (new BookingController())->adminUpdateStatus(),
     'api_booking_status' => (new BookingController())->apiGetStatusInfo(),
     'admin_bookings_status_history' => (new BookingController())->adminStatusHistory(),
+
     
     // ==================== HƯỚNG DẪN VIÊN ====================
     // Guide Management - QUAN TRỌNG: Đây là action cần sửa
