@@ -1,12 +1,18 @@
 <?php
-// index.php – PHIÊN BẢN HOÀN CHỈNH, CHẠY NGON NHẤT
+/* =========================================================================
+   FILE KHỞI ĐỘNG (ROUTER) - index.php
+   ========================================================================= */
+
+// 1. Khởi tạo Session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+// 2. Cấu hình hiển thị lỗi (Nên tắt khi deploy thực tế)
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+// 3. Nạp các file tài nguyên chung
 require_once './commons/env.php';
 require_once './commons/function.php';
 
@@ -21,9 +27,20 @@ $controllers = [
     './controllers/GuestController.php'
 ];
 
-foreach ($controllers as $file) {
-    if (file_exists($file)) require_once $file;
-}
+// Danh sách các Controller cần dùng
+require_once './controllers/ProductController.php';
+require_once './controllers/AdminController.php';
+require_once './controllers/TourController.php';
+require_once './controllers/DepartureController.php';
+require_once './controllers/BookingController.php';
+require_once './controllers/GuestController.php';
+require_once './controllers/GuideController.php'; // <--- QUAN TRỌNG: File xử lý HDV
+
+
+/* =========================================================================
+   DANH SÁCH ĐƯỜNG DẪN (ROUTES)
+   Cấu trúc: 'tên_act' => ['Tên_Controller', 'Tên_Hàm']
+   ========================================================================= */
 
 // Lấy action từ URL
 $act = $_GET['act'] ?? '/';

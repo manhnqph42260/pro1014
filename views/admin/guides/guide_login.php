@@ -75,7 +75,7 @@
         </div>
         
         <div class="login-body">
-            <form method="POST" action="?act=guide_process_login">
+            <form method="POST" action="<?= BASE_URL ?>?act=guide-login-check">
                 <div class="mb-3">
                     <label for="username" class="form-label">Tên đăng nhập / Email</label>
                     <input type="text" class="form-control" id="username" name="username" 

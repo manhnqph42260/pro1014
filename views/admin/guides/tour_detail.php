@@ -1,7 +1,7 @@
 <?php
 $page_title = "Chi tiết Tour";
 $breadcrumb = [
-    ['title' => 'Lịch làm việc', 'link' => 'schedule.php'],
+    ['title' => 'Lịch làm việc', 'link' => 'schedule_list.php'],
     ['title' => 'Chi tiết Tour', 'active' => true]
 ];
 require_once __DIR__ . '/header.php';
