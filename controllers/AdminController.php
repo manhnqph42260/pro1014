@@ -550,7 +550,7 @@ class AdminController
 
         $page_title = "Tour của tôi";
         require_once './views/admin/guides/header.php';
-        require_once './views/admin/guides/list.php';
+        require_once './views/admin/guides-admin/list.php';
         require_once './views/admin/guides/footer.php';
     }
     /**
