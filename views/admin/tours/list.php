@@ -1,6 +1,6 @@
 <?php
 $page_title = "Quản lý Tour";
-require_once '../header.php';
+require_once './views/admin/header.php';
 ?>
 
 <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center py-4">
@@ -9,7 +9,7 @@ require_once '../header.php';
         <p class="mb-0">Tổng số: <span class="badge bg-primary"><?php echo $total_tours; ?></span> tour</p>
     </div>
     <div class="btn-toolbar mb-2 mb-md-0">
-        <a href="/du_an1/admin/tours/create" class="btn btn-success">
+        <a href="?act=admin_tours_create" class="btn btn-success">
             <i class="fas fa-plus"></i> Tạo Tour Mới
         </a>
     </div>
@@ -238,4 +238,4 @@ require_once '../header.php';
 </nav>
 <?php endif; ?>
 
-<?php require_once '../footer.php'; ?>
+<?php require_once './views/admin/footer.php'; ?>

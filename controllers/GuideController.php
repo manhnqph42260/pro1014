@@ -132,41 +132,42 @@ public function adminCategoryDelete() {
 
     
     // Danh sách HDV
-    public function adminList() {
-        $this->checkAdminAuth();
-        
-        require_once './commons/env.php';
-        require_once './commons/function.php';
-        $conn = connectDB();
-        
-        // Xử lý search và filter
-        $search = $_GET['search'] ?? '';
-        $status = $_GET['status'] ?? '';
-        
-        $query = "SELECT * FROM guides WHERE 1=1";
-        $params = [];
-        
-        if ($search) {
-            $query .= " AND (full_name LIKE :search OR guide_code LIKE :search OR email LIKE :search OR phone LIKE :search)";
-            $params['search'] = "%$search%";
-        }
-        
-        if ($status) {
-            $query .= " AND status = :status";
-            $params['status'] = $status;
-        }
-        
-        $query .= " ORDER BY created_at DESC";
-        $stmt = $conn->prepare($query);
-        $stmt->execute($params);
-        $guides = $stmt->fetchAll();
-        
-        $this->renderView('./views/admin/guides/list.php', [
-            'guides' => $guides,
-            'search' => $search,
-            'status' => $status
-        ]);
+public function adminList() {
+    $this->checkAdminAuth();
+    
+    require_once './commons/env.php';
+    require_once './commons/function.php';
+    $conn = connectDB();
+    
+    // Xử lý search và filter
+    $search = $_GET['search'] ?? '';
+    $status = $_GET['status'] ?? '';
+    
+    $query = "SELECT * FROM guides WHERE 1=1";
+    $params = [];
+    
+    if ($search) {
+        $query .= " AND (full_name LIKE :search OR guide_code LIKE :search OR email LIKE :search OR phone LIKE :search)";
+        $params['search'] = "%$search%";
     }
+    
+    if ($status) {
+        $query .= " AND status = :status";
+        $params['status'] = $status;
+    }
+    
+    $query .= " ORDER BY created_at DESC";
+    $stmt = $conn->prepare($query);
+    $stmt->execute($params);
+    $guides = $stmt->fetchAll();
+    
+    // Render view
+    $this->renderView('./views/admin/guides-admin/list.php', [
+        'guides' => $guides,
+        'search' => $search,
+        'status' => $status
+    ]);
+}
     
     // Tạo HDV mới - ĐÃ FIX
     public function adminCreate() {

@@ -106,10 +106,10 @@ class AdminController
 
         // Thống kê tours
         $tour_stats = $conn->query("
-            SELECT 
+            SELECT  
                 COUNT(*) as total_tours,
-                SUM(CASE WHEN status = 'published' THEN 1 ELSE 0 END) as published_tours,
-                SUM(CASE WHEN status = 'draft' THEN 1 ELSE 0 END) as draft_tours
+                0 as published_tours,
+                0 as draft_tours
             FROM tours
         ")->fetch();
 
@@ -117,8 +117,8 @@ class AdminController
         $departure_stats = $conn->query("
             SELECT 
                 COUNT(*) as total_departures,
-                SUM(CASE WHEN status = 'scheduled' THEN 1 ELSE 0 END) as scheduled,
-                SUM(CASE WHEN status = 'confirmed' THEN 1 ELSE 0 END) as confirmed
+                COUNT(*) as scheduled,
+                0 as confirmed
             FROM departure_schedules
         ")->fetch();
 
@@ -131,15 +131,15 @@ class AdminController
 
         // Tours gần đây
         $recent_tours = $conn->query("
-            SELECT tour_id, tour_code, tour_name, status, created_at 
+            SELECT tour_id, tour_code, tour_name, description, duration_days 
             FROM tours 
-            ORDER BY created_at DESC 
+            ORDER BY tour_id DESC 
             LIMIT 5
         ")->fetchAll();
 
         // Lịch khởi hành sắp tới
         $upcoming_departures = $conn->query("
-            SELECT d.departure_id, t.tour_name, d.departure_date, d.status
+            SELECT d.departure_id, t.tour_name, d.departure_date, d.departure_time
             FROM departure_schedules d
             JOIN tours t ON d.tour_id = t.tour_id
             WHERE d.departure_date >= CURDATE()
@@ -152,8 +152,19 @@ class AdminController
 
     public function logout()
     {
+        // 1. Xóa tất cả biến session quan trọng
+        unset($_SESSION['admin_id']);
+        unset($_SESSION['guide_id']); // Xóa luôn cả session của HDV nếu có
+        unset($_SESSION['role']);
+        unset($_SESSION['user_guide']);
+        unset($_SESSION['full_name']);
+
+        // 2. Hủy toàn bộ phiên làm việc (Xóa sạch sành sanh)
+        session_unset();
         session_destroy();
-        header("Location: ?act=admin_login");
+
+        // 3. Chuyển hướng về trang Login chung
+        header("Location: index.php?act=login");
         exit();
     }
 
@@ -550,7 +561,7 @@ class AdminController
 
         $page_title = "Tour của tôi";
         require_once './views/admin/guides/header.php';
-        require_once './views/admin/guides/list.php';
+        require_once './views/admin/guides-admin/list.php';
         require_once './views/admin/guides/footer.php';
     }
     /**
@@ -625,7 +636,7 @@ class AdminController
 
         // Lấy danh sách dịch vụ
         $services_query = $conn->query("
-            SELECT * FROM services WHERE status = 'active'
+            SELECT * FROM tour_itineraries LIMIT 0
         ");
         $services = $services_query->fetchAll();
 

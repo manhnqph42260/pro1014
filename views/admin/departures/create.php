@@ -1,5 +1,6 @@
 <?php
 $page_title = "Tạo Lịch khởi hành";
+require_once './views/admin/header.php';
 ?>
 <!DOCTYPE html>
 <html lang="vi">
@@ -217,17 +218,6 @@ $page_title = "Tạo Lịch khởi hành";
 <body>
     <div class="admin-container">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo">
-                <h2>🏔️ Tour Admin</h2>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="?act=admin_dashboard" class="nav-item">📊 Dashboard</a>
-                <a href="?act=admin_tours" class="nav-item">🗺️ Quản lý Tour</a>
-                <a href="?act=admin_departures" class="nav-item active">📅 Lịch khởi hành</a>
-                <a href="?act=admin_logout" class="nav-item">🚪 Đăng xuất</a>
-            </nav>
-        </div>
 
         <!-- Main Content -->
         <div class="main-content">
