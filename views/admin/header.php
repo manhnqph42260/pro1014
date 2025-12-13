@@ -78,9 +78,9 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="nav-link">
-                                <i class="bi bi-bell me-2"></i>Dịch vụ
-                            </a>
+                             <a href="?act=admin_financial_report" class="nav-link <?php echo ($_GET['act'] ?? '') === 'admin_financial_report' ? 'active' : ''; ?>">
+        <i class="bi bi-graph-up me-2"></i>Báo cáo tài chính
+    </a>
                         </li>
                     </ul>
                     <hr>
