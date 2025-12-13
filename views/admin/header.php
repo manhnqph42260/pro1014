@@ -91,7 +91,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-dark text-small shadow" aria-labelledby="dropdownUser1">
                             <li><a class="dropdown-item" href="#"><i class="bi bi-person-circle me-2"></i>Profile</a></li>
-                            <li><a class="dropdown-item" href="?act=admin_logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
+                            <li><a class="dropdown-item" href="?act=logout"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a></li>
                         </ul>
                     </div>
                 </div>
