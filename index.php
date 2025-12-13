@@ -23,6 +23,21 @@ require_once './controllers/DepartureController.php';
 require_once './controllers/BookingController.php';
 require_once './controllers/GuestController.php';
 require_once './controllers/GuideController.php';
+// Chỉ load các controller cần thiết
+$controllers = [
+    './controllers/ProductController.php',
+    './controllers/AdminController.php', 
+    './controllers/TourController.php',
+    './controllers/DepartureController.php',
+    './controllers/BookingController.php',
+    './controllers/GuideController.php',
+    './controllers/GuestController.php',
+    './controllers/FinancialReportController.php'
+];
+
+foreach ($controllers as $file) {
+    if (file_exists($file)) require_once $file;
+}
 
 $act = $_GET['act'] ?? '/';
 
@@ -115,9 +130,30 @@ match ($act) {
     // ==========================================================
     // Lưu ý: Đã xóa guide_login vì dùng chung login ở trên
     
-    'guide_dashboard'        => (new GuideController())->dashboard(),
-    'guide_my_tours'         => (new GuideController())->myTours(),
-    'guide_tour_detail'      => (new GuideController())->tourDetail(),
+    // ==================== QUẢN LÝ KHÁCH HÀNG ====================
+    // Guest Management - QUAN TRỌNG: Đây là action cần sửa
+    'admin_guest_management' => (new GuestController())->adminGuestManagement(),
+    'admin_guest_detail' => (new GuestController())->adminGuestDetail(),
+    'edit_special_notes' => (new GuestController())->editSpecialNotes(),
+    
+    // AJAX functions for Guest Management
+    'ajax_get_departures' => (new GuestController())->ajaxGetDepartures(),
+    'ajax_get_guest_info' => (new GuestController())->ajaxGetGuestInfo(),
+    'updateGuestInfo' => (new GuestController())->updateGuestInfo(),
+    'updateCheckStatus' => (new GuestController())->updateCheckStatus(),
+    'assignRoom' => (new GuestController())->assignRoom(),
+    'returnRoom' => (new GuestController())->returnRoom(),
+    
+    // Room Management
+    'showGuestList' => (new GuestController())->showGuestList(),
+    'showRoomList' => (new GuestController())->showRoomList(),
+    'edit_room' => (new GuestController())->editRoom(),
+    'delete_room' => (new GuestController())->deleteRoom(),
+    // Financial Report Routes
+'admin_financial_report' => (new FinancialReportController())->adminFinancialReport(),
+'financial_dashboard' => (new FinancialReportController())->financialDashboard(),
+'export_financial_report' => (new FinancialReportController())->exportFinancialReport(),
+'api_financial_data' => (new FinancialReportController())->apiFinancialData(),
     
     // Điểm danh (Tích hợp từ file thứ 2 của bạn)
     'guide_attendance'       => (new GuideController())->attendanceList(), 
