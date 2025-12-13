@@ -18,7 +18,8 @@ $controllers = [
     './controllers/DepartureController.php',
     './controllers/BookingController.php',
     './controllers/GuideController.php',
-    './controllers/GuestController.php'
+    './controllers/GuestController.php',
+    './controllers/FinancialReportController.php'
 ];
 
 foreach ($controllers as $file) {
@@ -118,6 +119,11 @@ match ($act) {
     'showRoomList' => (new GuestController())->showRoomList(),
     'edit_room' => (new GuestController())->editRoom(),
     'delete_room' => (new GuestController())->deleteRoom(),
+    // Financial Report Routes
+'admin_financial_report' => (new FinancialReportController())->adminFinancialReport(),
+'financial_dashboard' => (new FinancialReportController())->financialDashboard(),
+'export_financial_report' => (new FinancialReportController())->exportFinancialReport(),
+'api_financial_data' => (new FinancialReportController())->apiFinancialData(),
     
     // ==================== HƯỚNG DẪN VIÊN ĐĂNG NHẬP ====================
     'guide_login' => (new AdminController())->guideLogin(),
