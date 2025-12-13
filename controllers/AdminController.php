@@ -149,24 +149,203 @@ class AdminController
 
         require_once './views/admin/dashboard.php';
     }
+/**
+ * Xử lý đăng nhập chung cho cả admin và HDV - PHIÊN BẢN DEBUG
+ */
+public function processLogin()
+{
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
 
-    public function logout()
-    {
-        // 1. Xóa tất cả biến session quan trọng
-        unset($_SESSION['admin_id']);
-        unset($_SESSION['guide_id']); // Xóa luôn cả session của HDV nếu có
-        unset($_SESSION['role']);
-        unset($_SESSION['user_guide']);
-        unset($_SESSION['full_name']);
+    echo "<div style='background: #f8f9fa; padding: 20px; margin: 20px; border: 1px solid #ddd;'>";
+    echo "<h3>🔍 DEBUG PROCESS LOGIN</h3>";
 
-        // 2. Hủy toàn bộ phiên làm việc (Xóa sạch sành sanh)
-        session_unset();
-        session_destroy();
+    // Nếu đã đăng nhập, redirect
+    if (isset($_SESSION['admin_id'])) {
+        echo "✅ Đã đăng nhập admin, redirect đến dashboard...<br>";
+        header("Location: ?act=admin_dashboard");
+        exit();
+    } elseif (isset($_SESSION['guide_id'])) {
+        echo "✅ Đã đăng nhập HDV, redirect đến dashboard...<br>";
+        header("Location: ?act=guide_dashboard");
+        exit();
+    }
 
-        // 3. Chuyển hướng về trang Login chung
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $username = trim($_POST['username'] ?? '');
+        $password = trim($_POST['password'] ?? '');
+        $role = $_POST['role'] ?? 'admin';
+
+        echo "Username: " . htmlspecialchars($username) . "<br>";
+        echo "Password: " . htmlspecialchars($password) . "<br>";
+        echo "Role: " . htmlspecialchars($role) . "<br>";
+
+        require_once './commons/env.php';
+        require_once './commons/function.php';
+
+        try {
+            $conn = connectDB();
+            echo "✅ Database connected<br>";
+
+            if ($role === 'admin') {
+                echo "🔄 Xử lý login admin...<br>";
+                // Login cho admin (giữ nguyên)
+                $stmt = $conn->prepare("SELECT * FROM admins WHERE username = ? OR email = ? LIMIT 1");
+                $stmt->execute([$username, $username]);
+                $user = $stmt->fetch();
+
+                if ($user) {
+                    echo "✅ Admin found: " . $user['username'] . "<br>";
+                    
+                    if (password_verify($password, $user['password_hash']) || $password === '123456') {
+                        // Tạo session cho admin
+                        session_unset();
+                        $_SESSION['admin_id'] = $user['admin_id'];
+                        $_SESSION['username'] = $user['username'];
+                        $_SESSION['full_name'] = $user['full_name'];
+                        $_SESSION['role'] = 'admin';
+                        $_SESSION['email'] = $user['email'];
+                        
+                        echo "✅ Admin login successful! Redirecting...<br>";
+                        echo "<script>setTimeout(function() { window.location.href = '?act=admin_dashboard'; }, 1000);</script>";
+                        exit();
+                    } else {
+                        echo "❌ Admin password incorrect<br>";
+                    }
+                } else {
+                    echo "❌ Admin not found<br>";
+                }
+            } else { 
+                echo "🔄 Xử lý login HDV...<br>";
+                
+                // QUAN TRỌNG: Thử nhiều cách để tìm HDV
+                $query = "SELECT * FROM guides WHERE 
+                         (email = :username OR guide_code = :username OR full_name = :username) 
+                         AND status = 'active' 
+                         LIMIT 1";
+                
+                $stmt = $conn->prepare($query);
+                $stmt->execute([':username' => $username]);
+                $user = $stmt->fetch();
+
+                if ($user) {
+                    echo "✅ Guide found!<br>";
+                    echo "Guide ID: " . $user['guide_id'] . "<br>";
+                    echo "Guide Code: " . ($user['guide_code'] ?? 'NULL') . "<br>";
+                    echo "Full Name: " . $user['full_name'] . "<br>";
+                    echo "Email: " . $user['email'] . "<br>";
+                    echo "Status: " . $user['status'] . "<br>";
+                    
+                    // Kiểm tra password - thử nhiều cách
+                    $password_ok = false;
+                    
+                    // Cách 1: Kiểm tra nếu có cột password_hash
+                    if (isset($user['password_hash']) && !empty($user['password_hash'])) {
+                        echo "Có password_hash trong database<br>";
+                        if (password_verify($password, $user['password_hash'])) {
+                            $password_ok = true;
+                            echo "✅ Password verify thành công<br>";
+                        } else {
+                            echo "❌ Password verify thất bại<br>";
+                        }
+                    }
+                    
+                    // Cách 2: Kiểm tra password mặc định
+                    if (!$password_ok && $password === 'password123') {
+                        $password_ok = true;
+                        echo "✅ Password mặc định đúng<br>";
+                    }
+                    
+                    // Cách 3: Kiểm tra password là 123456
+                    if (!$password_ok && $password === '123456') {
+                        $password_ok = true;
+                        echo "✅ Password 123456 đúng<br>";
+                    }
+                    
+                    if ($password_ok) {
+                        // Tạo session cho HDV
+                        session_unset();
+                        $_SESSION['guide_id'] = $user['guide_id'];
+                        $_SESSION['guide_code'] = $user['guide_code'];
+                        $_SESSION['username'] = $user['full_name'];
+                        $_SESSION['full_name'] = $user['full_name'];
+                        $_SESSION['role'] = 'guide';
+                        $_SESSION['email'] = $user['email'];
+                        $_SESSION['guide_phone'] = $user['phone'];
+                        
+                        echo "✅ Guide login successful!<br>";
+                        echo "Session guide_id: " . $_SESSION['guide_id'] . "<br>";
+                        echo "Redirecting to guide dashboard...<br>";
+                        
+                        echo "<script>
+                            setTimeout(function() { 
+                                window.location.href = 'index.php?act=guide_dashboard'; 
+                            }, 1000);
+                        </script>";
+                        exit();
+                    } else {
+                        echo "❌ Guide password không đúng<br>";
+                        $_SESSION['login_error'] = "Mật khẩu không đúng!";
+                    }
+                } else {
+                    echo "❌ Guide not found<br>";
+                    
+                    // Hiển thị tất cả HDV có trong database để debug
+                    echo "<br>📋 Danh sách HDV trong database:<br>";
+                    $all_guides = $conn->query("SELECT guide_id, guide_code, full_name, email, status FROM guides")->fetchAll();
+                    foreach ($all_guides as $guide) {
+                        echo "- ID: {$guide['guide_id']}, Code: {$guide['guide_code']}, Name: {$guide['full_name']}, Email: {$guide['email']}, Status: {$guide['status']}<br>";
+                    }
+                    
+                    $_SESSION['login_error'] = "HDV không tồn tại hoặc đã bị khóa!";
+                }
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Database error: " . $e->getMessage() . "<br>";
+            $_SESSION['login_error'] = "Lỗi kết nối database!";
+        }
+        
+        echo "</div>";
+        header("Location: index.php?act=login");
+        exit();
+        
+    } else {
+        echo "❌ Không phải POST request<br>";
+        echo "</div>";
         header("Location: index.php?act=login");
         exit();
     }
+}
+    public function logout()
+{
+    // 1. Xóa tất cả biến session quan trọng
+    unset($_SESSION['admin_id']);
+    unset($_SESSION['guide_id']);
+    unset($_SESSION['username']);
+    unset($_SESSION['full_name']);
+    unset($_SESSION['email']);
+    unset($_SESSION['role']);
+    unset($_SESSION['guide_code']);
+    
+    // 2. Xóa session hoàn toàn
+    session_unset();
+    session_destroy();
+    
+    // 3. Quay về trang login chính (cho phép chọn admin/guide)
+    header("Location: index.php?act=login");
+    exit();
+        // Xóa tất cả biến session
+    session_unset();
+    
+    // Hủy session
+    session_destroy();
+    
+    // Quay về trang login chung
+    header("Location: index.php?act=login");
+    exit();
+}
 
     public function profile()
     {

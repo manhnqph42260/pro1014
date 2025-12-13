@@ -25,41 +25,47 @@ foreach ($controllers as $file) {
     if (file_exists($file)) require_once $file;
 }
 
-// Lấy action từ URL
+// ==================== ROUTES ====================
 $act = $_GET['act'] ?? '/';
 
-// Xử lý routing bằng match statement
 match ($act) {
-    // Trang chủ
-    '/' => (new ProductController())->Home(),
+    // Trang chủ & Login CHUNG
+    '/', 'home' => require_once './views/login.php', // Login page chung
+    'login' => require_once './views/login.php', // Login page chung
+      'process_login' => require_once './views/login.php',
+    'process_login' => (new AdminController())->processLogin(), // Xử lý login chung
     
-    // Admin Routes
-    'admin_login' => (new AdminController())->login(),
+    
+    // Logout CHUNG
+    'logout' => (new AdminController())->logout(),
+    'logout', 'admin_logout', 'guide_logout' => (new AdminController())->logout(),
+    // ==================== ADMIN ROUTES ====================
     'admin_dashboard' => (new AdminController())->dashboard(),
-    'admin_logout' => (new AdminController())->logout(),
     'admin_profile' => (new AdminController())->profile(),
     'admin_change_password' => (new AdminController())->changePassword(),
     
-    // Tour Management - Admin
+    // ==================== GUIDE ROUTES ====================
+    'guide_dashboard' => (new AdminController())->guideDashboard(),
+    'guide_profile' => (new AdminController())->guideProfile(),
+    'guide_change_password' => (new AdminController())->guideChangePassword(),
+    
+    
+    // ==================== TOUR MANAGEMENT ====================
     'admin_tours' => (new TourController())->adminList(),
     'admin_tours_create' => (new TourController())->adminCreate(),
     'admin_tours_edit' => (new TourController())->adminEdit(),
-    'admin_tours_delete' => (new TourController())->adminDelete(),
     'admin_tours_update' => (new TourController())->adminUpdate(),
-    
-    // Tour Itinerary Management
+    'admin_tours_delete' => (new TourController())->adminDelete(),
     'admin_tours_itinerary' => (new TourController())->adminItinerary(),
     'admin_tours_itinerary_add' => (new TourController())->adminAddItinerary(),
     'admin_tours_itinerary_edit' => (new TourController())->adminEditItinerary(),
     'admin_tours_itinerary_delete' => (new TourController())->adminDeleteItinerary(),
     
-    // Departure Management
+    // ==================== DEPARTURE MANAGEMENT ====================
     'admin_departures' => (new DepartureController())->adminList(),
     'admin_departures_create' => (new DepartureController())->adminCreate(),
-    'admin_departures_delete' => (new DepartureController())->adminDelete(),
     'admin_departures_edit' => (new DepartureController())->adminEdit(),
-    
-    // Departure Detail & Assignment
+    'admin_departures_delete' => (new DepartureController())->adminDelete(),
     'admin_departure_detail' => (new DepartureController())->adminDetail(),
     'admin_departure_add_assignment' => (new DepartureController())->adminAddAssignment(),
     'admin_departure_add_resource' => (new DepartureController())->adminAddResource(),
@@ -71,7 +77,7 @@ match ($act) {
     'admin_update_checklist_status' => (new DepartureController())->adminUpdateChecklistStatus(),
     'admin_delete_checklist' => (new DepartureController())->adminDeleteChecklist(),
     
-    // Booking Management - Admin
+    // ==================== BOOKING MANAGEMENT ====================
     'admin_bookings' => (new BookingController())->adminList(),
     'admin_bookings_create' => (new BookingController())->adminCreate(),
     'admin_bookings_view' => (new BookingController())->adminView(),
@@ -83,52 +89,47 @@ match ($act) {
     'admin_bookings_update_status' => (new BookingController())->adminUpdateStatus(),
     'api_booking_status' => (new BookingController())->apiGetStatusInfo(),
     'admin_bookings_status_history' => (new BookingController())->adminStatusHistory(),
-
     
-    // ==================== HƯỚNG DẪN VIÊN ====================
-    // Guide Management - QUAN TRỌNG: Đây là action cần sửa
+    // ==================== GUIDE MANAGEMENT ====================
     'admin_guides' => (new GuideController())->adminList(),
     'admin_guides_create' => (new GuideController())->adminCreate(),
     'admin_guides_edit' => (new GuideController())->adminEdit(),
     'admin_guides_delete' => (new GuideController())->adminDelete(),
     'admin_guides_view' => (new GuideController())->adminView(),
-    
-    // Guide Category Management
     'admin_guide_categories' => (new GuideController())->adminCategories(),
     'admin_guide_category_create' => (new GuideController())->adminCategoryCreate(),
     'admin_guide_category_edit' => (new GuideController())->adminCategoryEdit(),
     'admin_guide_category_delete' => (new GuideController())->adminCategoryDelete(),
     
-    // ==================== QUẢN LÝ KHÁCH HÀNG ====================
-    // Guest Management - QUAN TRỌNG: Đây là action cần sửa
+    // ==================== GUEST MANAGEMENT ====================
     'admin_guest_management' => (new GuestController())->adminGuestManagement(),
     'admin_guest_detail' => (new GuestController())->adminGuestDetail(),
     'edit_special_notes' => (new GuestController())->editSpecialNotes(),
-    
-    // AJAX functions for Guest Management
     'ajax_get_departures' => (new GuestController())->ajaxGetDepartures(),
     'ajax_get_guest_info' => (new GuestController())->ajaxGetGuestInfo(),
     'updateGuestInfo' => (new GuestController())->updateGuestInfo(),
     'updateCheckStatus' => (new GuestController())->updateCheckStatus(),
     'assignRoom' => (new GuestController())->assignRoom(),
     'returnRoom' => (new GuestController())->returnRoom(),
-    
-    // Room Management
     'showGuestList' => (new GuestController())->showGuestList(),
     'showRoomList' => (new GuestController())->showRoomList(),
     'edit_room' => (new GuestController())->editRoom(),
     'delete_room' => (new GuestController())->deleteRoom(),
+    'print_special_notes' => (new GuestController())->printSpecialNotes(),
     
-    // ==================== HƯỚNG DẪN VIÊN ĐĂNG NHẬP ====================
-    'guide_login' => (new AdminController())->guideLogin(),
+    // ==================== GUIDE DASHBOARD & FEATURES ====================
     'guide_dashboard' => (new AdminController())->guideDashboard(),
-    'guide_logout' => (new AdminController())->guideLogout(),
     'guide_my_tours' => (new AdminController())->guideMyTours(),
     'guide_tour_detail' => (new AdminController())->guideTourDetail(),
     'guide_journal' => (new AdminController())->guideJournal(),
     'guide_attendance' => (new AdminController())->guideAttendance(),
     'guide_participants' => (new AdminController())->guideTourParticipants(),
     'guide_special_requests' => (new AdminController())->guideSpecialRequests(),
+    'guide_incident_reports' => (new AdminController())->guideIncidentReports(),
+    'guide_offline_mode' => (new AdminController())->guideOfflineMode(),
+    'guide_profile' => (new AdminController())->guideProfile(),
+    'guide_change_password' => (new AdminController())->guideChangePassword(),
+    'guide_create_incident_report' => (new AdminController())->guideCreateIncidentReport(),
     
     default => (new ProductController())->Home()
 };

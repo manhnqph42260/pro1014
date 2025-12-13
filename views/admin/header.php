@@ -1,3 +1,10 @@
+<?php
+if (!isset($_SESSION['admin_id'])) {
+    header("Location: ?act=login");
+    exit();
+}
+
+?>
 <!DOCTYPE html>
 <html lang="vi">
 <head>

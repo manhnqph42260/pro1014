@@ -12,6 +12,13 @@ if (!isset($_SESSION['guide_id'])) {
 $guide_name = $_SESSION['full_name'] ?? 'Hướng dẫn viên';
 $guide_code = $_SESSION['guide_code'] ?? 'HDV';
 date_default_timezone_set('Asia/Ho_Chi_Minh');
+
+?>
+<?php
+if (!isset($_SESSION['guide_id'])) {
+    header("Location: ?act=login");
+    exit();
+}
 ?>
 
 <!DOCTYPE html>
